@@ -21,7 +21,7 @@ const modCall = (p: string, body?: unknown): Promise<{ status: number; body: any
     req.on('error', reject); if (data) req.write(data); req.end()
   })
 const extCall = async (p: string, body: unknown) => {
-  const r = await fetch(`http://127.0.0.1:${PORT}${p}`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) })
+  const r = await fetch(`http://127.0.0.1:${PORT}${p}`, { method: 'POST', headers: { 'content-type': 'application/json', origin: 'safari-web-extension://TEST' }, body: JSON.stringify(body) })
   return { status: r.status, body: r.status === 204 ? null : await r.json() }
 }
 
@@ -83,6 +83,35 @@ describe('bridge', () => {
     expect(out.status).toBe(502)
     expect(out.body.error).toContain('did not answer')
   })
+
+  test('a web page cannot pose as the extension', async () => {
+    const asPage = await fetch(`http://127.0.0.1:${PORT}/ext/poll`, { method: 'POST', headers: { 'content-type': 'text/plain', origin: 'http://127.0.0.1:48610' }, body: '{"version":"evil"}' })
+    expect(asPage.status).toBe(403)
+    const jsonNoOrigin = await fetch(`http://127.0.0.1:${PORT}/ext/poll`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: '{}' })
+    expect(jsonNoOrigin.status).toBe(403)
+  })
+
+  test('a timed-out command is not handed to a later poll', async () => {
+    const call = modCall('/call', { name: 'late', timeoutMs: 1000 })
+    const first = await extCall('/ext/poll', { version: 'test' })
+    expect(first.body.name).toBe('late')
+    await call
+    // Simulate the extension never answering; queue a fresh command and make sure only it arrives.
+    const next = modCall('/call', { name: 'fresh' })
+    const second = await extCall('/ext/poll', { version: 'test' })
+    expect(second.body.name).toBe('fresh')
+    await extCall('/ext/result', { id: second.body.id, result: 1 })
+    await next
+  })
+
+  test('a command nobody fetches within the pickup window answers 503', async () => {
+    // lastSeen is recent from the previous tests, but no poll is waiting.
+    const t0 = Date.now()
+    const out = await modCall('/call', { name: 'orphan' })
+    expect(out.status).toBe(503)
+    expect(Date.now() - t0).toBeLessThan(8000)
+    expect((await modCall('/status')).body.extensionConnected).toBe(false)
+  }, 15000)
 
   test('a second bridge on the same socket refuses to start', async () => {
     const dup = spawn('node', [BRIDGE, '--sock', SOCK, '--port', String(PORT + 1)])

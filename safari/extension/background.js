@@ -2,7 +2,7 @@
 // Safari's tabs, and keeps per-tab console and network buffers.
 
 var BRIDGE = 'http://127.0.0.1:47831';
-var VERSION = '0.2.0';
+var VERSION = '0.3.0';
 var RING = 500;
 
 var consoleLogs = new Map();
@@ -38,8 +38,9 @@ browser.webRequest.onErrorOccurred.addListener(function (d) {
   push(networkLogs, d.tabId, r);
 }, { urls: ['<all_urls>'] });
 browser.tabs.onRemoved.addListener(function (tabId) { consoleLogs.delete(tabId); networkLogs.delete(tabId); });
-browser.webNavigation.onCommitted.addListener(function (d) {
-  if (d.frameId === 0) { consoleLogs.delete(d.tabId); networkLogs.delete(d.tabId); }
+var navigating = new Map(); // tabId -> timestamp of the last top-frame navigation start
+browser.webNavigation.onBeforeNavigate.addListener(function (d) {
+  if (d.frameId === 0) { consoleLogs.delete(d.tabId); networkLogs.delete(d.tabId); navigating.set(d.tabId, Date.now()); }
 });
 
 async function tabOrActive(tabId) {
@@ -52,9 +53,20 @@ async function tabOrActive(tabId) {
   return tabs[0];
 }
 
-async function waitLoaded(tabId, timeoutMs) {
+// Waits for a navigation that `since` started: first for Safari to leave the old page
+// (bounded, since same-URL reloads can be too fast to observe), then for `complete`.
+async function waitLoaded(tabId, timeoutMs, since) {
   var deadline = Date.now() + timeoutMs;
-  await sleep(150);
+  if (since !== undefined) {
+    var startDeadline = Date.now() + 2000;
+    while (Date.now() < startDeadline) {
+      var nav = navigating.get(tabId);
+      var t0; try { t0 = await browser.tabs.get(tabId); } catch (e) { return false; }
+      if ((nav !== undefined && nav >= since) || t0.status === 'loading') break;
+      await sleep(50);
+    }
+  }
+  await sleep(100);
   while (Date.now() < deadline) {
     var t;
     try { t = await browser.tabs.get(tabId); } catch (e) { return false; }
@@ -116,11 +128,12 @@ var handlers = {
   },
   navigate: async function (p) {
     var t = await tabOrActive(p.tabId);
+    var since = Date.now();
     if (p.url === 'back') await browser.tabs.goBack(t.id);
     else if (p.url === 'forward') await browser.tabs.goForward(t.id);
     else if (p.url === 'reload') await browser.tabs.reload(t.id);
     else await browser.tabs.update(t.id, { url: p.url });
-    var ready = await waitLoaded(t.id, 30000);
+    var ready = await waitLoaded(t.id, 30000, since);
     t = await browser.tabs.get(t.id);
     return { tabId: t.id, url: t.url || '', title: t.title || '', ready: ready };
   },
@@ -166,7 +179,14 @@ async function handle(cmd) {
 }
 
 async function post(path, body) {
-  await fetch(BRIDGE + path, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
+  var payload = JSON.stringify(body);
+  for (var attempt = 0; attempt < 3; attempt++) {
+    try {
+      var r = await fetch(BRIDGE + path, { method: 'POST', headers: { 'content-type': 'application/json' }, body: payload });
+      if (r.ok) return;
+    } catch (e) {}
+    await sleep(300 * (attempt + 1));
+  }
 }
 
 async function loop() {
@@ -176,6 +196,7 @@ async function loop() {
       if (r.status === 204) continue;
       if (!r.ok) { await sleep(1000); continue; }
       var cmd = await r.json();
+      if (cmd.deadline && Date.now() > cmd.deadline) continue; // the mod gave up on it already
       handle(cmd).then(
         function (result) { return post('/ext/result', { id: cmd.id, result: result }); },
         function (err) { return post('/ext/result', { id: cmd.id, error: String((err && err.message) || err) }); }

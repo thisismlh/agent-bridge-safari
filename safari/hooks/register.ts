@@ -44,7 +44,7 @@ const normaliseUrl = (input: unknown): string | undefined => {
   if (input === undefined || input === null || String(input).trim() === '') return undefined
   const s = String(input).trim()
   if (/^(https?|file|about):/i.test(s)) return s
-  if (/^[\w.-]+(\.[a-z]{2,})(:\d+)?(\/|io)/i.test(s) || /^localhost(:\d+)?/.test(s)) return `https://${s}`
+  if (/^[\w.-]+\.[a-z]{2,}(:\d+)?(\/|$)/i.test(s) || /^localhost(:\d+)?(\/|$)/.test(s)) return `https://${s}`
   return undefined
 }
 
@@ -57,7 +57,7 @@ async function appleScreenshot(io: Io, tabId: unknown, scale: number): Promise<A
     sleep(0.2);
     var b = w.bounds();
     return { windowId: w.id(), geom: geom, bounds: { x: b.x, y: b.y, w: b.width, h: b.height } };`)
-  const path = `/tmp/claude-safari-${Date.now()}.png`
+  const path = `${(await io.home()) ?? '/tmp'}/.claude/safari-shot-${Date.now()}.png`
   try {
     const g = info.geom
     let note = ''
@@ -398,6 +398,7 @@ async function statusText(io: Io): Promise<string> {
     `Extension: ${s.connected ? `connected (v${s.extensionVersion ?? '?'})` : 'not connected'}`,
     `Transport in use: ${s.connected ? 'Safari extension' : 'AppleScript fallback'}`,
   ]
+  if (s.error) lines.push(`Bridge start failed: ${s.error}`)
   if (!s.connected) lines.push('', SETUP)
   return lines.join('\n')
 }

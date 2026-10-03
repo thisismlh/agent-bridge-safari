@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "Claude Code for Safari",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Lets Claude Code read and drive Safari tabs through a local bridge.",
   "background": { "scripts": ["background.js"], "persistent": true },
   "content_scripts": [

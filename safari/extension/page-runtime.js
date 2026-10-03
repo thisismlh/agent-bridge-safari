@@ -5,20 +5,38 @@
 (function () {
   if (window.__claude && window.__claude.version === 1) return;
   var refs = [];
+  var refIndex = new WeakMap();
   var INTERACTIVE = 'a[href],button,input,select,textarea,summary,[role=button],[role=link],[role=checkbox],[role=radio],[role=tab],[role=menuitem],[role=option],[role=switch],[role=textbox],[role=combobox],[onclick],[contenteditable=""],[contenteditable=true]';
 
   // hidden: the element and everything under it is invisible, so skip the subtree.
+  // hidden: nothing under the element can be seen, so skip the subtree. display:none is the
+  // only style that reliably propagates; visibility and opacity can be overridden by children.
   function hidden(el) {
     if (!(el instanceof Element)) return true;
-    var cs = getComputedStyle(el);
-    return cs.display === 'none' || cs.visibility === 'hidden' || cs.opacity === '0';
+    return getComputedStyle(el).display === 'none';
   }
+  // A form control hidden with opacity 0 or visibility hidden is still the thing to drive
+  // (styled checkboxes, file inputs under a label); anything else that way is treated as hidden.
+  function faded(el) {
+    var cs = getComputedStyle(el);
+    return cs.visibility === 'hidden' || cs.opacity === '0';
+  }
+  function isControl(el) { var t = el.tagName; return t === 'INPUT' || t === 'SELECT' || t === 'TEXTAREA'; }
   // hasBox: the element itself takes up space. A zero-size wrapper is walked but not listed.
   function hasBox(el) { var r = el.getBoundingClientRect(); return r.width > 0 && r.height > 0; }
-  function visible(el) { return !hidden(el) && hasBox(el); }
+  function visible(el) { return !hidden(el) && hasBox(el) && (!faded(el) || isControl(el)); }
+  // Every element in the document including open shadow roots, in document order.
+  function allElements(root) {
+    var out = [];
+    (function walk(node) {
+      var kids = node.querySelectorAll ? node.querySelectorAll('*') : [];
+      for (var i = 0; i < kids.length; i++) { out.push(kids[i]); if (kids[i].shadowRoot) walk(kids[i].shadowRoot); }
+    })(root || document);
+    return out;
+  }
   function refOf(el) {
-    var i = refs.indexOf(el);
-    if (i < 0) { refs.push(el); i = refs.length - 1; }
+    var i = refIndex.get(el);
+    if (i === undefined) { refs.push(el); i = refs.length - 1; refIndex.set(el, i); }
     return 'ref_' + (i + 1);
   }
   function byRef(ref) {
@@ -76,7 +94,15 @@
     if (!n && !container && t !== 'input' && t !== 'select' && t !== 'textarea') n = el.innerText;
     return text(n).slice(0, 120);
   }
-  function isInteractive(el) { return el.matches(INTERACTIVE) || el.isContentEditable; }
+  function isInteractive(el) {
+    if (el.matches(INTERACTIVE) || el.isContentEditable) return true;
+    // React-style click targets: a pointer cursor with no interactive ancestor.
+    if (el.tagName !== 'DIV' && el.tagName !== 'SPAN' && el.tagName !== 'LI' && el.tagName !== 'TD' && el.tagName !== 'IMG') return false;
+    if (getComputedStyle(el).cursor !== 'pointer') return false;
+    var up = el.parentElement;
+    while (up) { if (up.matches(INTERACTIVE) || getComputedStyle(up).cursor === 'pointer') return false; up = up.parentElement; }
+    return true;
+  }
   function describe(el) {
     var out = { role: role(el), name: name(el) };
     var t = el.tagName.toLowerCase();
@@ -103,6 +129,8 @@
       var boxed = hasBox(el);
       var t = el.tagName.toLowerCase();
       if (t === 'script' || t === 'style' || t === 'noscript' || t === 'svg' || t === 'template') return;
+      if (t === 'iframe' || t === 'frame') { if (boxed) lines.push('  '.repeat(Math.min(depth, 30)) + 'iframe ' + JSON.stringify((el.getAttribute('title') || el.getAttribute('name') || '')) + (el.src ? ' src=' + el.src.slice(0, 160) : '') + ' (contents not readable from this tab)'); return; }
+      if (faded(el) && !isControl(el)) return;
       var r = role(el);
       var inter = isInteractive(el);
       var ownText = '';
@@ -116,7 +144,7 @@
       if (show) {
         var d = describe(el);
         var parts = [];
-        parts.push(d.role || (ownText ? 'text' : t));
+        parts.push(d.role || (inter ? 'clickable' : ownText ? 'text' : t));
         if (inter) parts.push('[' + refOf(el) + ']');
         if (r === 'heading') parts.push('h' + headingLevel(el));
         var label = inter || r ? d.name : ownText;
@@ -128,6 +156,7 @@
         if (d.disabled) parts.push('disabled');
         if (d.focused) parts.push('focused');
         if (d.expanded !== undefined) parts.push(d.expanded ? 'expanded' : 'collapsed');
+        if (faded(el)) parts.push('(visually hidden)');
         lines.push(indent + parts.join(' '));
         if (inter && (t === 'a' || t === 'button' || t === 'select')) return;
       } else if (boxed && !interactiveOnly && !r && ownText && lines.length) {
@@ -145,7 +174,7 @@
   function find(q) {
     q = String(q || '').toLowerCase();
     var out = [];
-    var all = document.querySelectorAll('*');
+    var all = allElements(document);
     for (var i = 0; i < all.length && out.length < 40; i++) {
       var el = all[i];
       if (!visible(el)) continue;
@@ -155,7 +184,7 @@
       var d = describe(el);
       var hay = (d.role + ' ' + d.name + ' ' + (d.value || '') + ' ' + (d.href || '')).toLowerCase();
       if (hay.indexOf(q) < 0) continue;
-      out.push({ el: el, inter: inter, row: { role: d.role || el.tagName.toLowerCase(), name: d.name, value: d.value, href: d.href } });
+      out.push({ el: el, inter: inter, row: { role: d.role || (inter ? 'clickable' : el.tagName.toLowerCase()), name: d.name, value: d.value, href: d.href } });
     }
     // Interactive matches first: a query like "name" should surface the field before its label.
     out.sort(function (a, b) { return (b.inter ? 1 : 0) - (a.inter ? 1 : 0); });
@@ -167,7 +196,11 @@
     var r = el.getBoundingClientRect();
     return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
   }
-  function elementAt(x, y) { return document.elementFromPoint(x, y); }
+  function elementAt(x, y) {
+    var el = document.elementFromPoint(x, y), inner;
+    while (el && el.shadowRoot && (inner = el.shadowRoot.elementFromPoint(x, y)) && inner !== el) el = inner;
+    return el;
+  }
   function mouseInit(x, y, mods) {
     var i = { bubbles: true, cancelable: true, composed: true, clientX: x, clientY: y, view: window, button: 0, buttons: 1 };
     mods = mods || '';
@@ -178,7 +211,8 @@
     var el, x, y;
     if (opts.ref) { el = byRef(opts.ref); var c = center(el); x = c.x; y = c.y; }
     else { x = opts.x; y = opts.y; el = elementAt(x, y); if (!el) throw new Error('Nothing at ' + x + ',' + y); }
-    var target = elementAt(x, y) || el;
+    var hit = elementAt(x, y);
+    var target = (opts.ref && hit && !el.contains(hit) && !hit.contains(el)) ? el : (hit || el);
     var init = mouseInit(x, y, opts.modifiers);
     var count = opts.count || 1;
     try { target.dispatchEvent(new PointerEvent('pointerdown', init)); } catch (e) {}
@@ -223,14 +257,14 @@
       return { typed: s.length, into: name(el) || 'contenteditable' };
     }
     if (!('value' in el)) throw new Error('Element is not editable: ' + el.tagName);
-    var base = opts.replace ? '' : el.value;
     for (var i = 0; i < s.length; i++) {
       var ch = s[i];
-      var kinit = { key: ch, bubbles: true, cancelable: true };
+      var code = ch.charCodeAt(0);
+      var kinit = { key: ch, keyCode: code, which: code, charCode: code, bubbles: true, cancelable: true };
       el.dispatchEvent(new KeyboardEvent('keydown', kinit));
       el.dispatchEvent(new KeyboardEvent('keypress', kinit));
-      base += ch;
-      setNative(el, base);
+      if (i === 0 && opts.replace) setNative(el, '');
+      setNative(el, el.value + ch);
       el.dispatchEvent(new InputEvent('input', { bubbles: true, data: ch, inputType: 'insertText' }));
       el.dispatchEvent(new KeyboardEvent('keyup', kinit));
     }
@@ -286,7 +320,7 @@
     return { innerWidth: innerWidth, innerHeight: innerHeight, outerWidth: outerWidth, outerHeight: outerHeight, screenX: screenX, screenY: screenY, dpr: devicePixelRatio, scrollX: scrollX, scrollY: scrollY };
   }
   function waitFor(opts) {
-    if (opts.selector && document.querySelector(opts.selector)) return true;
+    if (opts.selector) { var found = allElements(document).some(function (el) { try { return el.matches(opts.selector); } catch (e) { return false; } }); if (found) return true; }
     if (opts.text && (document.body.innerText || '').indexOf(opts.text) >= 0) return true;
     return false;
   }
@@ -310,14 +344,15 @@
   function pressKey(opts) {
     var key = opts.key;
     var el = document.activeElement || document.body;
-    var init = { key: key, code: key === 'Enter' ? 'Enter' : key, bubbles: true, cancelable: true };
+    var codes = { Enter: 13, Tab: 9, Escape: 27 };
+    var init = { key: key, code: key, keyCode: codes[key] || 0, which: codes[key] || 0, shiftKey: !!opts.shift, bubbles: true, cancelable: true };
     var down = el.dispatchEvent(new KeyboardEvent('keydown', init));
     el.dispatchEvent(new KeyboardEvent('keypress', init));
     if (down) {
       if (key === 'Enter') {
         if (el.tagName === 'TEXTAREA' || el.isContentEditable) document.execCommand('insertText', false, '\n');
+        else if (el.tagName === 'BUTTON' || el.tagName === 'A' || (el.tagName === 'INPUT' && (el.type === 'submit' || el.type === 'button' || el.type === 'checkbox' || el.type === 'radio'))) el.click();
         else if (el.form) { if (el.form.requestSubmit) el.form.requestSubmit(); else el.form.submit(); }
-        else if (el.tagName === 'BUTTON' || el.tagName === 'A') el.click();
       } else if (key === 'Tab') {
         var list = focusables(); var i = list.indexOf(el);
         var next = list[(i + (opts.shift ? -1 : 1) + list.length) % list.length];

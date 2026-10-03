@@ -36,9 +36,13 @@ is shared by every session on the machine; whichever session started it owns it.
   (tabs, navigate with load wait, page calls, captureVisibleTab scaled to CSS pixels,
   tab-scoped console and network buffers), posts results, reconnects forever.
 - `bridge/bridge.mjs`: HTTP on the Unix socket for the mod (`POST /call`,
-  `GET /status`, `GET /events`), HTTP on 127.0.0.1:47831 for the extension
-  (`GET /ext/poll`, `POST /ext/result`, `POST /ext/events`). One command in flight
-  per tab; 60 s default timeout.
+  `GET /status`, `POST /shutdown`), HTTP on 127.0.0.1:47831 for the extension
+  (`POST /ext/poll`, `POST /ext/result`). Console and network buffers live in the
+  extension and are read with ordinary commands. Commands run concurrently in the
+  extension; the bridge answers 503 when no poll collects a command within 5 s,
+  drops timed-out commands from its queue, and uses random command ids. The extension
+  side accepts only `application/json` posts with a `safari-web-extension://` origin,
+  which a web page on the loopback host cannot produce.
 - `hooks/io.ts`: the narrow capability surface (`run`, `spawn`, `fetch`, `home`, file
   reads and writes, `after`) that helper modules receive. The engine's validator refuses
   a module that passes `$` across an import, so `register.ts` alone touches `$` and

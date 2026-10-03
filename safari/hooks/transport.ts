@@ -7,10 +7,11 @@ import type { Io } from './io'
 import { runInPage, SafariError } from './safari'
 
 export type Transport = 'extension' | 'applescript'
-export type BridgeStatus = { running: boolean; connected: boolean; extensionVersion?: string | null; pid?: number }
+export type BridgeStatus = { running: boolean; connected: boolean; extensionVersion?: string | null; pid?: number; error?: string }
 
 let bridgeStarted = false
 let nodeBinary: string | null = null
+export let lastStartError: string | null = null
 
 export async function bridgeSocket(io: Io): Promise<string> {
   const home = (await io.home()) ?? '/tmp'
@@ -44,20 +45,27 @@ export async function ensureBridge(io: Io): Promise<BridgeStatus> {
   if (first.running) return first
   if (!bridgeStarted) {
     bridgeStarted = true
-    const node = await findNode(io)
-    const script = `${io.pluginRoot}/bridge/bridge.mjs`
-    const stream = io.spawn([node, script, '--sock', await bridgeSocket(io)])
-    void (async () => {
-      try {
-        for await (const _piece of stream) {
-          /* drain until the child ends */
+    try {
+      const node = await findNode(io)
+      const script = `${io.pluginRoot}/bridge/bridge.mjs`
+      const stream = io.spawn([node, script, '--sock', await bridgeSocket(io)])
+      void (async () => {
+        try {
+          for await (const _piece of stream) {
+            /* drain until the child ends */
+          }
+        } catch {
+          /* the child ended; the next ensure respawns it */
+        } finally {
+          bridgeStarted = false
         }
-      } catch {
-        /* the child ended; the next ensure respawns it */
-      } finally {
-        bridgeStarted = false
-      }
-    })()
+      })()
+    } catch (err) {
+      // No node or bun: the AppleScript transport still works, so fall back quietly.
+      bridgeStarted = false
+      lastStartError = err instanceof Error ? err.message : String(err)
+      return { running: false, connected: false, error: lastStartError }
+    }
   }
   for (let i = 0; i < 12; i++) {
     await io.after(250)
@@ -68,12 +76,17 @@ export async function ensureBridge(io: Io): Promise<BridgeStatus> {
 }
 
 export async function command<T>(io: Io, name: string, params: Record<string, unknown> = {}, timeoutMs = 60_000): Promise<T> {
-  const r = await io.fetch('http://bridge/call', {
-    method: 'POST',
-    headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ name, params, timeoutMs }),
-    socketPath: await bridgeSocket(io),
-  })
+  let r
+  try {
+    r = await io.fetch('http://bridge/call', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ name, params, timeoutMs }),
+      socketPath: await bridgeSocket(io),
+    })
+  } catch {
+    throw new SafariError('The Safari bridge is not running. Run /safari start, or call tabs_context to use AppleScript tab ids.')
+  }
   let parsed: { result?: T; error?: string }
   try { parsed = JSON.parse(r.text) } catch { throw new SafariError(`Bridge answered ${r.status} with no JSON.`) }
   if (parsed.error !== undefined) throw new SafariError(parsed.error)
@@ -89,10 +102,12 @@ export function transportFor(tabId: unknown, connected: boolean): Transport {
 }
 
 export async function pickTransport(io: Io, tabId: unknown): Promise<Transport> {
-  const t = transportFor(tabId, false)
-  if (t === 'extension' && tabId !== undefined && tabId !== null && tabId !== '') return 'extension'
   const s = await ensureBridge(io)
-  return transportFor(tabId, s.connected)
+  const t = transportFor(tabId, s.connected)
+  if (t === 'extension' && !s.connected) {
+    throw new SafariError(`Tab ${String(tabId)} belongs to the Safari extension, which is not connected. Run /safari, or call tabs_context for current tab ids.`)
+  }
+  return t
 }
 
 /** Calls one page runtime function in a tab through whichever transport fits. */
