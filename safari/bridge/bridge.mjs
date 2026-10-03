@@ -1,0 +1,122 @@
+// The local bridge between the Claude Code mod and the Safari extension.
+// Plain Node, no dependencies. Two listeners:
+//   - a Unix socket for the mod:        POST /call, GET /status
+//   - 127.0.0.1:PORT for the extension: POST /ext/poll, POST /ext/result
+// Run: node bridge.mjs [--sock PATH] [--port N]
+
+import http from 'node:http'
+import fs from 'node:fs'
+import os from 'node:os'
+import path from 'node:path'
+
+const args = process.argv.slice(2)
+const opt = (name, fallback) => { const i = args.indexOf(name); return i >= 0 ? args[i + 1] : fallback }
+const SOCK = opt('--sock', path.join(os.homedir(), '.claude', 'safari-bridge.sock'))
+const PORT = Number(opt('--port', 47831))
+const POLL_HOLD_MS = 25_000
+const CONNECTED_WINDOW_MS = 40_000
+
+const queue = []            // commands waiting for the extension
+const waiters = []          // extension polls waiting for a command: { res, timer }
+const pending = new Map()   // id -> { resolve, timer }
+let lastSeen = 0
+let extensionVersion = null
+let nextId = 1
+
+const json = (res, status, body) => {
+  const text = JSON.stringify(body)
+  res.writeHead(status, { 'content-type': 'application/json', 'content-length': Buffer.byteLength(text) })
+  res.end(text)
+}
+const readBody = req => new Promise((resolve, reject) => {
+  const chunks = []
+  req.on('data', c => chunks.push(c))
+  req.on('end', () => { try { resolve(chunks.length ? JSON.parse(Buffer.concat(chunks).toString('utf8')) : {}) } catch (e) { reject(e) } })
+  req.on('error', reject)
+})
+const isConnected = () => Date.now() - lastSeen < CONNECTED_WINDOW_MS
+
+function dispatch() {
+  while (queue.length && waiters.length) {
+    const cmd = queue.shift()
+    const w = waiters.shift()
+    clearTimeout(w.timer)
+    json(w.res, 200, cmd)
+  }
+}
+
+// ---- mod side (Unix socket)
+const modServer = http.createServer(async (req, res) => {
+  try {
+    if (req.method === 'GET' && req.url === '/status') {
+      return json(res, 200, { ok: true, pid: process.pid, extensionConnected: isConnected(), lastSeen, extensionVersion, queued: queue.length, pending: pending.size, port: PORT })
+    }
+    if (req.method === 'POST' && req.url === '/call') {
+      const body = await readBody(req)
+      if (!isConnected()) return json(res, 503, { error: 'Safari extension is not connected.' })
+      const id = nextId++
+      const timeoutMs = Math.min(600_000, Math.max(1000, Number(body.timeoutMs) || 60_000))
+      const cmd = { id, name: body.name, params: body.params || {} }
+      const done = new Promise(resolve => {
+        const timer = setTimeout(() => { pending.delete(id); resolve({ error: `Safari did not answer ${body.name} within ${Math.round(timeoutMs / 1000)} s.` }) }, timeoutMs)
+        pending.set(id, { resolve, timer })
+      })
+      queue.push(cmd)
+      dispatch()
+      const out = await done
+      return json(res, out.error !== undefined ? 502 : 200, out)
+    }
+    if (req.method === 'POST' && req.url === '/shutdown') { json(res, 200, { ok: true }); setTimeout(() => process.exit(0), 50); return }
+    json(res, 404, { error: 'not found' })
+  } catch (e) {
+    json(res, 500, { error: String(e && e.message || e) })
+  }
+})
+
+// ---- extension side (loopback TCP)
+const extServer = http.createServer(async (req, res) => {
+  try {
+    if (req.method === 'POST' && req.url === '/ext/poll') {
+      const body = await readBody(req)
+      lastSeen = Date.now()
+      if (body.version) extensionVersion = body.version
+      if (queue.length) { const cmd = queue.shift(); return json(res, 200, cmd) }
+      const w = { res, timer: null }
+      w.timer = setTimeout(() => { const i = waiters.indexOf(w); if (i >= 0) waiters.splice(i, 1); res.writeHead(204); res.end() }, POLL_HOLD_MS)
+      req.on('close', () => { clearTimeout(w.timer); const i = waiters.indexOf(w); if (i >= 0) waiters.splice(i, 1) })
+      waiters.push(w)
+      return
+    }
+    if (req.method === 'POST' && req.url === '/ext/result') {
+      const body = await readBody(req)
+      lastSeen = Date.now()
+      const p = pending.get(body.id)
+      if (p) { clearTimeout(p.timer); pending.delete(body.id); p.resolve(body.error !== undefined ? { error: body.error } : { result: body.result }) }
+      return json(res, 200, { ok: true })
+    }
+    json(res, 404, { error: 'not found' })
+  } catch (e) {
+    json(res, 500, { error: String(e && e.message || e) })
+  }
+})
+extServer.keepAliveTimeout = 65_000
+
+// Refuse to start twice: if a bridge already answers on the socket, exit 3.
+async function alreadyRunning() {
+  return new Promise(resolve => {
+    const req = http.request({ socketPath: SOCK, path: '/status', method: 'GET', timeout: 1000 }, res => { res.resume(); resolve(res.statusCode === 200) })
+    req.on('error', () => resolve(false)); req.on('timeout', () => { req.destroy(); resolve(false) })
+    req.end()
+  })
+}
+
+if (await alreadyRunning()) { console.error(`bridge already running on ${SOCK}`); process.exit(3) }
+fs.mkdirSync(path.dirname(SOCK), { recursive: true })
+try { fs.unlinkSync(SOCK) } catch {}
+await new Promise((resolve, reject) => { modServer.on('error', reject); modServer.listen(SOCK, resolve) })
+fs.chmodSync(SOCK, 0o600)
+await new Promise((resolve, reject) => { extServer.on('error', reject); extServer.listen(PORT, '127.0.0.1', resolve) })
+console.log(`safari bridge listening: ${SOCK} and 127.0.0.1:${PORT}`)
+
+const bye = () => { try { fs.unlinkSync(SOCK) } catch {} process.exit(0) }
+process.on('SIGTERM', bye); process.on('SIGINT', bye); process.on('SIGHUP', bye)
