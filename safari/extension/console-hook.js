@@ -18,6 +18,17 @@
     var orig = console[level];
     console[level] = function () { send(level, arguments); try { return orig.apply(console, arguments); } catch (e) {} };
   });
+  window.addEventListener('message', function (ev) {
+    if (ev.source !== window || !ev.data || !ev.data.__claudeEval) return;
+    var req = ev.data.__claudeEval; var out;
+    try {
+      var v = (0, eval)(req.expression);
+      var str; try { str = JSON.stringify(v); } catch (e) { str = String(v); }
+      out = { id: req.id, ok: str === undefined ? 'undefined' : str };
+    } catch (e) { out = { id: req.id, error: String(e && (e.stack || e.message) || e) }; }
+    try { window.postMessage({ __claudeEvalResult: out }, '*'); } catch (e) {}
+  });
+  try { window.postMessage({ __claudeHookReady: true }, '*'); } catch (e) {}
   window.addEventListener('error', function (e) { send('error', [e.message + ' (' + (e.filename || '') + ':' + (e.lineno || 0) + ')']); });
   window.addEventListener('unhandledrejection', function (e) { send('error', ['Unhandled promise rejection: ' + fmt(e.reason)]); });
 })();

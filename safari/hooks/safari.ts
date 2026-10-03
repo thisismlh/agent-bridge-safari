@@ -2,7 +2,7 @@
 // through osascript, and hands back parsed JSON. Page-level work injects the
 // page runtime with Safari's `do JavaScript`.
 
-import type { EngineInterface } from 'claude-code'
+import type { Io } from './io'
 
 import { PAGE_RUNTIME } from './page-script'
 import { explainSafariError, type TabSpec } from './format'
@@ -54,9 +54,9 @@ function prelude(tab: TabSpec): string {
   `
 }
 
-export async function runJxa<T>($: EngineInterface, tab: TabSpec, body: string, timeoutMs = 45_000): Promise<T> {
+export async function runJxa<T>(io: Io, tab: TabSpec, body: string, timeoutMs = 45_000): Promise<T> {
   const script = `${prelude(tab)}\nJSON.stringify((function () { try { return { ok: (function () { ${body} })() }; } catch (e) { return { error: String(e && e.message || e) }; } })());`
-  const ran = await $.process.run(['osascript', '-l', 'JavaScript'], { stdin: script, timeoutMs })
+  const ran = await io.run(['osascript', '-l', 'JavaScript'], { stdin: script, timeoutMs })
   const out = ran.stdout.trim()
   if (ran.exitCode !== 0 || !out) {
     throw new SafariError(explainSafariError(ran.stderr.trim() || `osascript exited ${ran.exitCode}`))
@@ -75,7 +75,7 @@ export async function runJxa<T>($: EngineInterface, tab: TabSpec, body: string, 
 }
 
 /** Calls one function of the page runtime in the target tab and returns its JSON result. */
-export async function runInPage<T>($: EngineInterface, tab: TabSpec, fn: string, args: unknown): Promise<T> {
+export async function runInPage<T>(io: Io, tab: TabSpec, fn: string, args: unknown): Promise<T> {
   const pageSrc =
     PAGE_RUNTIME +
     `\n;JSON.stringify((function () { try { return { ok: window.__claude.${fn}(${JSON.stringify(args)}) }; } catch (e) { return { error: String(e && e.message || e) }; } })());`
@@ -87,9 +87,9 @@ export async function runInPage<T>($: EngineInterface, tab: TabSpec, fn: string,
     if (r.error !== undefined) throw new Error(r.error);
     return r.ok;
   `
-  return runJxa<T>($, tab, body)
+  return runJxa<T>(io, tab, body)
 }
 
-export async function ensureSafari($: EngineInterface): Promise<void> {
-  await $.process.run(['open', '-g', '-a', 'Safari'], { timeoutMs: 10_000 })
+export async function ensureSafari(io: Io): Promise<void> {
+  await io.run(['open', '-g', '-a', 'Safari'], { timeoutMs: 10_000 })
 }

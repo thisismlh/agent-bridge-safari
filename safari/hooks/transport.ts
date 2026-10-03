@@ -2,9 +2,8 @@
 // connected, AppleScript otherwise. Tools call `page`, `command` and the tab helpers
 // here and never care which transport answered.
 
-import type { EngineInterface } from 'claude-code'
-
 import { parseTabId, type TabSpec } from './format'
+import type { Io } from './io'
 import { runInPage, SafariError } from './safari'
 
 export type Transport = 'extension' | 'applescript'
@@ -13,14 +12,14 @@ export type BridgeStatus = { running: boolean; connected: boolean; extensionVers
 let bridgeStarted = false
 let nodeBinary: string | null = null
 
-export async function bridgeSocket($: EngineInterface): Promise<string> {
-  const home = (await $.env.get('HOME')) ?? '/tmp'
+export async function bridgeSocket(io: Io): Promise<string> {
+  const home = (await io.home()) ?? '/tmp'
   return `${home}/.claude/safari-bridge.sock`
 }
 
-export async function bridgeStatus($: EngineInterface): Promise<BridgeStatus> {
+export async function bridgeStatus(io: Io): Promise<BridgeStatus> {
   try {
-    const r = await $.http.fetch('http://bridge/status', { socketPath: await bridgeSocket($) })
+    const r = await io.fetch('http://bridge/status', { socketPath: await bridgeSocket(io) })
     if (!r.ok) return { running: false, connected: false }
     const s = JSON.parse(r.text) as { extensionConnected: boolean; extensionVersion: string | null; pid: number }
     return { running: true, connected: !!s.extensionConnected, extensionVersion: s.extensionVersion, pid: s.pid }
@@ -29,10 +28,10 @@ export async function bridgeStatus($: EngineInterface): Promise<BridgeStatus> {
   }
 }
 
-async function findNode($: EngineInterface): Promise<string> {
+async function findNode(io: Io): Promise<string> {
   if (nodeBinary) return nodeBinary
   // A login shell sees nvm, Homebrew and friends; the host process may not.
-  const ran = await $.process.run(['/bin/zsh', '-lc', 'command -v node || command -v bun'], { timeoutMs: 15_000 })
+  const ran = await io.run(['/bin/zsh', '-lc', 'command -v node || command -v bun'], { timeoutMs: 15_000 })
   const found = ran.stdout.trim().split('\n').pop()?.trim()
   if (!found) throw new SafariError('The Safari bridge needs node or bun on your PATH, and neither was found.')
   nodeBinary = found
@@ -40,18 +39,18 @@ async function findNode($: EngineInterface): Promise<string> {
 }
 
 /** Starts the bridge daemon if nothing answers on the socket. Resolves once it answers or after 3 s. */
-export async function ensureBridge($: EngineInterface): Promise<BridgeStatus> {
-  const first = await bridgeStatus($)
+export async function ensureBridge(io: Io): Promise<BridgeStatus> {
+  const first = await bridgeStatus(io)
   if (first.running) return first
   if (!bridgeStarted) {
     bridgeStarted = true
-    const node = await findNode($)
-    const script = `${$.plugin.root}/bridge/bridge.mjs`
-    const stream = $.process.spawn({ argv: [node, script, '--sock', await bridgeSocket($)] })
+    const node = await findNode(io)
+    const script = `${io.pluginRoot}/bridge/bridge.mjs`
+    const stream = io.spawn([node, script, '--sock', await bridgeSocket(io)])
     void (async () => {
       try {
-        for await (const piece of stream) {
-          if ('text' in piece && /listening|already running/.test(piece.text)) continue
+        for await (const _piece of stream) {
+          /* drain until the child ends */
         }
       } catch {
         /* the child ended; the next ensure respawns it */
@@ -61,19 +60,19 @@ export async function ensureBridge($: EngineInterface): Promise<BridgeStatus> {
     })()
   }
   for (let i = 0; i < 12; i++) {
-    await new Promise<void>(r => $.clock.after(250, () => r()))
-    const s = await bridgeStatus($)
+    await io.after(250)
+    const s = await bridgeStatus(io)
     if (s.running) return s
   }
   return { running: false, connected: false }
 }
 
-export async function command<T>($: EngineInterface, name: string, params: Record<string, unknown> = {}, timeoutMs = 60_000): Promise<T> {
-  const r = await $.http.fetch('http://bridge/call', {
+export async function command<T>(io: Io, name: string, params: Record<string, unknown> = {}, timeoutMs = 60_000): Promise<T> {
+  const r = await io.fetch('http://bridge/call', {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ name, params, timeoutMs }),
-    socketPath: await bridgeSocket($),
+    socketPath: await bridgeSocket(io),
   })
   let parsed: { result?: T; error?: string }
   try { parsed = JSON.parse(r.text) } catch { throw new SafariError(`Bridge answered ${r.status} with no JSON.`) }
@@ -89,17 +88,17 @@ export function transportFor(tabId: unknown, connected: boolean): Transport {
   return connected ? 'extension' : 'applescript'
 }
 
-export async function pickTransport($: EngineInterface, tabId: unknown): Promise<Transport> {
+export async function pickTransport(io: Io, tabId: unknown): Promise<Transport> {
   const t = transportFor(tabId, false)
   if (t === 'extension' && tabId !== undefined && tabId !== null && tabId !== '') return 'extension'
-  const s = await ensureBridge($)
+  const s = await ensureBridge(io)
   return transportFor(tabId, s.connected)
 }
 
 /** Calls one page runtime function in a tab through whichever transport fits. */
-export async function page<T>($: EngineInterface, tabId: unknown, fn: string, args: unknown): Promise<T> {
-  const t = await pickTransport($, tabId)
-  if (t === 'extension') return command<T>($, 'page', { tabId: tabId === '' ? undefined : tabId, fn, args })
+export async function page<T>(io: Io, tabId: unknown, fn: string, args: unknown): Promise<T> {
+  const t = await pickTransport(io, tabId)
+  if (t === 'extension') return command<T>(io, 'page', { tabId: tabId === '' ? undefined : tabId, fn, args })
   const spec: TabSpec = parseTabId(tabId)
-  return runInPage<T>($, spec, fn, args)
+  return runInPage<T>(io, spec, fn, args)
 }

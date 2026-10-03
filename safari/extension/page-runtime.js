@@ -71,7 +71,8 @@
     if (!n && (t === 'input') && (el.type === 'submit' || el.type === 'button')) n = el.value;
     if (!n && (t === 'input' || t === 'select' || t === 'textarea') && el.name) n = el.name;
     if (!n && t === 'select' && el.selectedOptions.length) n = el.selectedOptions[0].text;
-    if (!n && t !== 'input' && t !== 'select' && t !== 'textarea') n = el.innerText;
+    var container = t === 'form' || t === 'main' || t === 'nav' || t === 'section' || t === 'table' || t === 'article' || t === 'aside' || t === 'header' || t === 'footer' || t === 'ul' || t === 'ol' || t === 'dialog';
+    if (!n && !container && t !== 'input' && t !== 'select' && t !== 'textarea') n = el.innerText;
     return text(n).slice(0, 120);
   }
   function isInteractive(el) { return el.matches(INTERACTIVE) || el.isContentEditable; }
