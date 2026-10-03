@@ -24,9 +24,16 @@ signing, no extension install.
    in Claude Code (or open `app/Claude Code for Safari.app`).
 2. Safari > Settings > Extensions > turn on "Claude Code for Safari" and allow it on
    every website.
-3. Unsigned builds only: Safari > Develop > "Allow unsigned extensions" (resets when
-   Safari restarts). Sign in to Xcode with an Apple ID and build with
+3. Unsigned builds only: Safari > Settings > Developer > "Allow unsigned extensions"
+   (Safari 27 moved it there from the Develop menu; it resets when Safari restarts).
+   Sign in to Xcode with an Apple ID and build with
    `TEAM=<your team id> ./scripts/build-extension.sh` to make it permanent.
+   Alternative for development: Settings > Developer > "Add Temporary Extension…" and
+   pick the `extension/` folder. That loads it without the app until Safari quits.
+
+After rebuilding, Safari keeps running the old extension code until it reloads it:
+quit and reopen Safari (app build), or re-add the temporary extension. `/safari`
+shows the extension version the bridge sees.
 
 `/safari` shows bridge and extension status. Real keyboard shortcuts through
 `press_key` (anything other than Enter, Tab, Escape) still need Accessibility
@@ -68,6 +75,15 @@ or add that path to `CLAUDE_CODE_PLUGIN_DIRS` in the `env` block of `~/.claude/s
 Not available in Safari: trusted mouse and keyboard events (no debugger API), GIF recording.
 
 ## Development
+
+`hooks/register.ts` is the only file that touches the engine object `$`; it builds an
+`Io` object of closures (`hooks/io.ts`) for the helper modules, because the engine's
+validator refuses a mod that passes `$` across an import. Validate with the engine
+the desktop app runs, which is newer than the CLI on PATH:
+
+```bash
+"$HOME/Library/Application Support/Claude/claude-code/"*/*/claude.app/Contents/MacOS/claude plugin validate safari
+```
 
 ```bash
 cd safari && bunx tsc -p . && bun test tests/ bridge/

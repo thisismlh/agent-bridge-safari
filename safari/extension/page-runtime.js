@@ -37,6 +37,7 @@
       var ty = (el.type || 'text').toLowerCase();
       if (ty === 'submit' || ty === 'button' || ty === 'reset') return 'button';
       if (ty === 'checkbox' || ty === 'radio') return ty;
+      if (ty === 'file') return 'fileinput';
       return 'textbox';
     }
     if (t === 'textarea') return 'textbox';
