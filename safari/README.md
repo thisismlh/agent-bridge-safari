@@ -8,19 +8,29 @@ It is a Claude Code mod: a hooks module that registers tools named
 `mcp__safari__<tool>` and serves them by sending AppleScript to Safari. No Xcode, no
 signing, no extension install.
 
-## One-time setup
+## Two transports
 
-1. **Safari JavaScript bridge** (required for every page tool)
-   Safari > Settings > Advanced > turn on "Show features for web developers".
-   Then menu bar Develop > "Allow JavaScript from Apple Events".
-2. **Automation**: the first call prompts macOS to let the app running Claude Code
-   control Safari. Allow it. (System Settings > Privacy & Security > Automation.)
-3. **Screenshots**: System Settings > Privacy & Security > Screen Recording, allow the
-   app running Claude Code, then restart it.
-4. **press_key**: System Settings > Privacy & Security > Accessibility, allow the app
-   running Claude Code.
+1. **Safari extension** (preferred). A Safari Web Extension in `extension/` talks to
+   the mod through a local bridge daemon (`bridge/bridge.mjs`). Gives page access,
+   screenshots, console and network capture, file uploads and stable tab ids with no
+   macOS permissions.
+2. **AppleScript fallback**. Used automatically when the extension is not connected.
+   Needs Safari's Develop > "Allow JavaScript from Apple Events", and Screen Recording
+   for screenshots.
 
-Tabs, navigate, and tabs_create work with no setup.
+## One-time setup (extension)
+
+1. Build and register the app: `./scripts/build-extension.sh`, then `/safari install`
+   in Claude Code (or open `app/Claude Code for Safari.app`).
+2. Safari > Settings > Extensions > turn on "Claude Code for Safari" and allow it on
+   every website.
+3. Unsigned builds only: Safari > Develop > "Allow unsigned extensions" (resets when
+   Safari restarts). Sign in to Xcode with an Apple ID and build with
+   `TEAM=<your team id> ./scripts/build-extension.sh` to make it permanent.
+
+`/safari` shows bridge and extension status. Real keyboard shortcuts through
+`press_key` (anything other than Enter, Tab, Escape) still need Accessibility
+permission for the app running Claude Code.
 
 ## Loading
 
@@ -45,20 +55,26 @@ or add that path to `CLAUDE_CODE_PLUGIN_DIRS` in the `env` block of `~/.claude/s
 | get_page_text | Visible text, main content first |
 | click, hover | By ref or by viewport CSS-pixel coordinates |
 | type | Types into the focused element or a ref, firing key and input events |
-| press_key | Real key presses via macOS, e.g. `Return`, `cmd+a`, `shift+Tab` |
+| press_key | `Return`, `Tab`, `Escape` in the page; other keys and shortcuts via macOS |
+| upload_file | Attach local files to a file input (extension only) |
+| console_messages | Console output captured in a tab (extension only) |
+| network_requests | Requests observed in a tab (extension only) |
 | form_input | Set text, checkbox, radio, select or contenteditable by ref |
 | scroll | By direction and ticks, or scroll a ref into view |
 | screenshot | Viewport PNG scaled to CSS pixels, so coordinates map to click |
 | javascript | Evaluate an expression in the page and return JSON |
 | wait | Seconds, or until a selector or text appears |
 
-Not available without a real Safari extension: console log and network request capture.
+Not available in Safari: trusted mouse and keyboard events (no debugger API), GIF recording.
 
 ## Development
 
 ```bash
-cd safari && bunx tsc -p . && bun test tests/
+cd safari && bunx tsc -p . && bun test tests/ bridge/
 ```
+
+After editing `extension/page-runtime.js`, run `bun scripts/sync-runtime.ts` so the
+AppleScript transport gets the same code.
 
 `scripts/live.ts` drives a tool against the real Safari through a fake engine:
 
