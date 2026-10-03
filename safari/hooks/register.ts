@@ -5,11 +5,13 @@ import type { Io } from './io'
 import { ensureSafari, runJxa, SafariError } from './safari'
 import { bridgeStatus, command, ensureBridge, page, pickTransport } from './transport'
 
-type Block = { type: 'text'; text: string } | { type: 'image'; data: string; mimeType: 'image/png' }
-type Answer = { result: { content: Block[]; isError: boolean } }
+type Block = { type: 'text'; text: string } | { type: 'image'; source: { type: 'base64'; media_type: 'image/png'; data: string } }
+// A registered tool answers with MCP content blocks; a failure is a deny, which the model
+// reads as an error result with this text.
+type Answer = { result: Block[]; deny?: undefined } | { deny: string; result?: undefined }
 
-const ok = (text: string, extra: Block[] = []): Answer => ({ result: { content: [{ type: 'text', text }, ...extra], isError: false } })
-const fail = (text: string): Answer => ({ result: { content: [{ type: 'text', text }], isError: true } })
+const ok = (text: string, extra: Block[] = []): Answer => ({ result: [{ type: 'text', text }, ...extra] })
+const fail = (text: string): Answer => ({ deny: text })
 
 const TAB = { tabId: { type: 'string', description: 'Tab id from tabs_context. Omit for the current tab of the front window.' } }
 const REF = { ref: { type: 'string', description: 'Element ref such as "ref_12" from read_page or find.' } }
@@ -83,7 +85,7 @@ async function appleScreenshot(io: Io, tabId: unknown, scale: number): Promise<A
       note += 'Whole window captured (viewport crop needs "Allow JavaScript from Apple Events"); coordinates are not viewport-aligned.'
     }
     const base64 = await io.readBytes(path)
-    return ok(note, [{ type: 'image', data: base64, mimeType: 'image/png' }])
+    return ok(note, [{ type: 'image', source: { type: 'base64', media_type: 'image/png', data: base64 } }])
   } finally {
     void io.run(['rm', '-f', path], { timeoutMs: 5_000 })
   }
@@ -318,16 +320,17 @@ const TOOLS: (ToolSpec & { run: Handler })[] = [
       if ((await pickTransport(io, tabId)) === 'extension') {
         const r = await command<{ base64: string; width: number; height: number; geometry: Geometry }>(io, 'screenshot', { tabId, scale: s })
         const g = r.geometry
-        answer = ok(`Viewport ${g.innerWidth}×${g.innerHeight} CSS px; coordinates in that frame${s < 1 ? ` (image shown at ${s}×)` : ''}. Scrolled to (${g.scrollX}, ${g.scrollY}).`, [{ type: 'image', data: r.base64, mimeType: 'image/png' }])
+        answer = ok(`Viewport ${g.innerWidth}×${g.innerHeight} CSS px; coordinates in that frame${s < 1 ? ` (image shown at ${s}×)` : ''}. Scrolled to (${g.scrollX}, ${g.scrollY}).`, [{ type: 'image', source: { type: 'base64', media_type: 'image/png', data: r.base64 } }])
       } else {
         answer = await appleScreenshot(io, tabId, s)
       }
-      if (save_to && !answer.result.isError) {
-        const img = answer.result.content.find(b => b.type === 'image')
-        if (img && img.type === 'image') {
+      if (save_to && answer.result) {
+        const img = answer.result.find(b => b.type === 'image')
+        const first = answer.result[0]
+        if (img && img.type === 'image' && first && first.type === 'text') {
           await io.writeText(String(save_to), '')
-          const r = await io.run(['/bin/sh', '-c', 'base64 -d > "$0"', String(save_to)], { stdin: img.data, timeoutMs: 15_000 })
-          if (r.exitCode === 0) answer.result.content[0] = { type: 'text', text: `${(answer.result.content[0] as { text: string }).text} Saved to ${save_to}.` }
+          const r = await io.run(['/bin/sh', '-c', 'base64 -d > "$0"', String(save_to)], { stdin: img.source.data, timeoutMs: 15_000 })
+          if (r.exitCode === 0) answer.result[0] = { type: 'text', text: `${first.text} Saved to ${save_to}.` }
         }
       }
       return answer

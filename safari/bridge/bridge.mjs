@@ -24,7 +24,7 @@ let lastSeen = 0
 let extensionVersion = null
 let lastOrigin = null
 let lastContentType = null
-const PICKUP_MS = 5_000
+const PICKUP_MS = 8_000
 
 const json = (res, status, body) => {
   const text = JSON.stringify(body)

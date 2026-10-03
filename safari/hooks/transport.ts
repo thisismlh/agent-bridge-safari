@@ -90,6 +90,7 @@ export async function command<T>(io: Io, name: string, params: Record<string, un
   let parsed: { result?: T; error?: string }
   try { parsed = JSON.parse(r.text) } catch { throw new SafariError(`Bridge answered ${r.status} with no JSON.`) }
   if (parsed.error !== undefined) throw new SafariError(parsed.error)
+  if (parsed.result === undefined) throw new SafariError(`Safari returned no result for ${name}; try again.`)
   return parsed.result as T
 }
 

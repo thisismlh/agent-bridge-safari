@@ -62,5 +62,5 @@ if (tool.startsWith('/')) { const c = commands.get(tool.slice(1))!; console.log(
 const hook = hooks.get(`mcp__safari__${tool}`)
 if (!hook) { console.error('no such tool'); process.exit(1) }
 const res = await hook($, { tool: `mcp__safari__${tool}`, tool_use_id: 'x', ...(json ? JSON.parse(json) : {}) })
-for (const b of res.result.content) console.log(b.type === 'text' ? b.text : `[image ${Math.round(b.data.length * 3 / 4 / 1024)} KB]`)
-if (res.result.isError) { console.log('(isError)'); process.exit(2) }
+if (res.deny !== undefined) { console.log(res.deny); console.log('(isError)'); process.exit(2) }
+for (const b of res.result) console.log(b.type === 'text' ? b.text : `[image ${Math.round(b.source.data.length * 3 / 4 / 1024)} KB]`)
