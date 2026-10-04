@@ -5,16 +5,20 @@
   if (window.__claudeContentInstalled) return;
   window.__claudeContentInstalled = true;
 
-  // Console hook in the page world. Normally the manifest's MAIN-world content script has
-  // already installed it before any page script ran; this is the fallback for Safari builds
-  // that ignore "world". A strict page CSP can refuse the fallback script.
-  try {
-    var s = document.createElement("script");
-    s.src = browser.runtime.getURL('console-hook.js');
-    s.async = false;
-    (document.head || document.documentElement).appendChild(s);
-    s.addEventListener('load', function () { s.remove(); });
-  } catch (e) {}
+  // Console hook in the page world, installed before any page script runs: an inline
+  // script executes synchronously on insertion at document_start. Pages whose CSP forbids
+  // inline scripts get the extension-URL fallback below, which may itself be refused; the
+  // other tools keep working either way.
+  function installHook(viaSrc) {
+    try {
+      var s = document.createElement('script');
+      if (viaSrc) s.src = browser.runtime.getURL('console-hook.js'); else s.textContent = window.__CLAUDE_HOOK_SRC || '';
+      s.async = false;
+      (document.head || document.documentElement).appendChild(s);
+      if (!viaSrc) s.remove(); else s.addEventListener('load', function () { s.remove(); });
+    } catch (e) {}
+  }
+  installHook(false);
 
   window.addEventListener('message', function (ev) {
     if (ev.source !== window || !ev.data || !ev.data.__claudeConsole) return;
@@ -23,6 +27,7 @@
 
   var hookReady = false;
   var evalWaiters = {};
+  setTimeout(function () { if (!hookReady) installHook(true); }, 300);
   window.addEventListener('message', function (ev) {
     if (ev.source !== window || !ev.data) return;
     if (ev.data.__claudeHookReady) hookReady = true;

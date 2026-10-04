@@ -124,6 +124,7 @@ const extServer = http.createServer(async (req, res) => {
       const body = await readBody(req)
       lastSeen = Date.now()
       const origin = String(req.headers.origin || '')
+      for (const [o, i] of instances) if (Date.now() - i.lastSeen > 5 * CONNECTED_WINDOW_MS) instances.delete(o)
       instances.set(origin, { lastSeen, tabs: typeof body.tabs === 'number' ? body.tabs : -1, reach: typeof body.reach === 'number' ? body.reach : 0, version: body.version || null })
       if (body.version && origin === primaryOrigin()) extensionVersion = body.version
       const w = { res, timer: null, origin }
