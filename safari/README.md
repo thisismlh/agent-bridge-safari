@@ -27,7 +27,7 @@ signing, no extension install.
 3. Unsigned builds only: Safari > Settings > Developer > "Allow unsigned extensions"
    (Safari 27 moved it there from the Develop menu; it resets when Safari restarts).
    Sign in to Xcode with an Apple ID and build with
-   `TEAM=<your team id> ./scripts/build-extension.sh` to make it permanent.
+   `TEAM=4689L493Z5 ./scripts/build-extension.sh` (your Personal Team id; `defaults read com.apple.dt.Xcode IDEProvisioningTeamByIdentifier` lists it) to make it permanent.
    Alternative for development: Settings > Developer > "Add Temporary Extension…" and
    pick the `extension/` folder. That loads it without the app until Safari quits.
 
