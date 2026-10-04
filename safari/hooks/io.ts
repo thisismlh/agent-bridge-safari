@@ -12,6 +12,7 @@ export type Io = {
   fetch: (url: string, init?: { method?: string; headers?: Record<string, string>; body?: string; socketPath?: string }) => Promise<FetchResult>
   home: () => Promise<string | undefined>
   readBytes: (path: string) => Promise<string>
+  readText: (path: string) => Promise<string>
   writeText: (path: string, text: string) => Promise<void>
   fileSize: (path: string) => Promise<number>
   after: (ms: number) => Promise<void>

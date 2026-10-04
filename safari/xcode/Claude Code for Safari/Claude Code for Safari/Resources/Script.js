@@ -1,22 +1,20 @@
-function show(enabled, useSettingsInsteadOfPreferences) {
-    if (useSettingsInsteadOfPreferences) {
-        document.getElementsByClassName('state-on')[0].innerText = "Claude Code for Safari’s extension is currently on. You can turn it off in the Extensions section of Safari Settings.";
-        document.getElementsByClassName('state-off')[0].innerText = "Claude Code for Safari’s extension is currently off. You can turn it on in the Extensions section of Safari Settings.";
-        document.getElementsByClassName('state-unknown')[0].innerText = "You can turn on Claude Code for Safari’s extension in the Extensions section of Safari Settings.";
-        document.getElementsByClassName('open-preferences')[0].innerText = "Quit and Open Safari Settings…";
-    }
+function setStatus(s) {
+    const ext = document.getElementById('ext');
+    if (!s.extensionEnabled) { ext.textContent = 'Off. Turn it on in Safari Settings > Extensions.'; ext.className = 'bad'; }
+    else if (s.extensionConnected) { ext.textContent = `On and connected (v${s.extensionVersion}).`; ext.className = 'good'; }
+    else { ext.textContent = 'On, waiting for Safari to connect…'; ext.className = 'warn'; }
 
-    if (typeof enabled === "boolean") {
-        document.body.classList.toggle(`state-on`, enabled);
-        document.body.classList.toggle(`state-off`, !enabled);
-    } else {
-        document.body.classList.remove(`state-on`);
-        document.body.classList.remove(`state-off`);
-    }
+    const bridge = document.getElementById('bridge');
+    if (s.bridgeError) { bridge.textContent = `Failed: ${s.bridgeError}`; bridge.className = 'bad'; }
+    else { bridge.textContent = `Listening on 127.0.0.1:${s.bridgePort}.`; bridge.className = 'good'; }
+
+    const claude = document.getElementById('claude');
+    claude.textContent = s.lastClaudeCall ? `Last call ${s.lastClaudeCall}.` : 'No calls yet. Run /safari in Claude Code.';
+    claude.className = s.lastClaudeCall ? 'good' : '';
+
+    document.getElementById('login').checked = !!s.launchAtLogin;
+    document.getElementById('version').textContent = `Version ${s.appVersion}`;
 }
-
-function openPreferences() {
-    webkit.messageHandlers.controller.postMessage("open-preferences");
-}
-
-document.querySelector("button.open-preferences").addEventListener("click", openPreferences);
+document.querySelector('button.open-preferences').addEventListener('click', () => webkit.messageHandlers.controller.postMessage('open-preferences'));
+document.querySelector('button.copy-command').addEventListener('click', () => webkit.messageHandlers.controller.postMessage('copy-command'));
+document.getElementById('login').addEventListener('change', () => webkit.messageHandlers.controller.postMessage('toggle-login'));

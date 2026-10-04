@@ -8,10 +8,12 @@
 
 /* Begin PBXBuildFile section */
 		286D01593071876D00B0D2D0 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 286D01583071876D00B0D2D0 /* AppDelegate.swift */; };
+		94B8D5B60B0F4A429EB5C754 /* Bridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE7C328DDCCE47BB83715A4F /* Bridge.swift */; };
 		286D015D3071876D00B0D2D0 /* Main.html in Resources */ = {isa = PBXBuildFile; fileRef = 286D015B3071876D00B0D2D0 /* Main.html */; };
 		286D015F3071876D00B0D2D0 /* Icon.png in Resources */ = {isa = PBXBuildFile; fileRef = 286D015E3071876D00B0D2D0 /* Icon.png */; };
 		286D01613071876D00B0D2D0 /* Style.css in Resources */ = {isa = PBXBuildFile; fileRef = 286D01603071876D00B0D2D0 /* Style.css */; };
 		286D01633071876D00B0D2D0 /* Script.js in Resources */ = {isa = PBXBuildFile; fileRef = 286D01623071876D00B0D2D0 /* Script.js */; };
+		D0D0836BFC3A43999480076E /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = AA4D007C44F2446BA044F627 /* PrivacyInfo.xcprivacy */; };
 		286D01653071876D00B0D2D0 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 286D01643071876D00B0D2D0 /* ViewController.swift */; };
 		286D01683071876D00B0D2D0 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 286D01663071876D00B0D2D0 /* Main.storyboard */; };
 		286D016A3071876E00B0D2D0 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 286D01693071876E00B0D2D0 /* Assets.xcassets */; };
@@ -50,10 +52,12 @@
 /* Begin PBXFileReference section */
 		286D01553071876D00B0D2D0 /* Claude Code for Safari.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Claude Code for Safari.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		286D01583071876D00B0D2D0 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		AE7C328DDCCE47BB83715A4F /* Bridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Bridge.swift; sourceTree = "<group>"; };
 		286D015C3071876D00B0D2D0 /* Base */ = {isa = PBXFileReference; lastKnownFileType = text.html; name = Base; path = Base.lproj/Main.html; sourceTree = "<group>"; };
 		286D015E3071876D00B0D2D0 /* Icon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Icon.png; sourceTree = "<group>"; };
 		286D01603071876D00B0D2D0 /* Style.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = Style.css; sourceTree = "<group>"; };
 		286D01623071876D00B0D2D0 /* Script.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = Script.js; sourceTree = "<group>"; };
+		AA4D007C44F2446BA044F627 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		286D01643071876D00B0D2D0 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
 		286D01673071876D00B0D2D0 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		286D01693071876E00B0D2D0 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -105,6 +109,7 @@
 			isa = PBXGroup;
 			children = (
 				286D01583071876D00B0D2D0 /* AppDelegate.swift */,
+				AE7C328DDCCE47BB83715A4F /* Bridge.swift */,
 				286D01643071876D00B0D2D0 /* ViewController.swift */,
 				286D01663071876D00B0D2D0 /* Main.storyboard */,
 				286D01693071876E00B0D2D0 /* Assets.xcassets */,
@@ -121,6 +126,7 @@
 				286D015E3071876D00B0D2D0 /* Icon.png */,
 				286D01603071876D00B0D2D0 /* Style.css */,
 				286D01623071876D00B0D2D0 /* Script.js */,
+				AA4D007C44F2446BA044F627 /* PrivacyInfo.xcprivacy */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -231,6 +237,7 @@
 				286D015F3071876D00B0D2D0 /* Icon.png in Resources */,
 				286D01683071876D00B0D2D0 /* Main.storyboard in Resources */,
 				286D01633071876D00B0D2D0 /* Script.js in Resources */,
+				D0D0836BFC3A43999480076E /* PrivacyInfo.xcprivacy in Resources */,
 				286D015D3071876D00B0D2D0 /* Main.html in Resources */,
 				286D016A3071876E00B0D2D0 /* Assets.xcassets in Resources */,
 				286D01613071876D00B0D2D0 /* Style.css in Resources */,
@@ -255,6 +262,7 @@
 			files = (
 				286D01653071876D00B0D2D0 /* ViewController.swift in Sources */,
 				286D01593071876D00B0D2D0 /* AppDelegate.swift in Sources */,
+				94B8D5B60B0F4A429EB5C754 /* Bridge.swift in Sources */,
 			);
 		};
 		286D016C3071876E00B0D2D0 /* Sources */ = {
@@ -417,6 +425,8 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_APP_SANDBOX = YES;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
+				ENABLE_INCOMING_NETWORK_CONNECTIONS = NO;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -451,6 +461,8 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_APP_SANDBOX = YES;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
+				ENABLE_INCOMING_NETWORK_CONNECTIONS = NO;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -488,6 +500,8 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_APP_SANDBOX = YES;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
+				ENABLE_INCOMING_NETWORK_CONNECTIONS = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
@@ -530,6 +544,8 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_APP_SANDBOX = YES;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
+				ENABLE_INCOMING_NETWORK_CONNECTIONS = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;

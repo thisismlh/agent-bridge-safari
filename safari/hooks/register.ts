@@ -27,6 +27,7 @@ function makeIo($: EngineInterface): Io {
     fetch: (url, init) => $.http.fetch(url, init),
     home: () => $.env.get('HOME'),
     readBytes: async path => (await $.fs.read(path, { as: 'bytes' })).base64,
+    readText: path => $.fs.read(path),
     writeText: (path, text) => $.fs.write(path, text),
     fileSize: async path => (await $.fs.stat(path)).size,
     after: ms => new Promise<void>(resolve => $.clock.after(ms, () => resolve())),
@@ -397,7 +398,7 @@ function mimeOf(p: string): string {
 async function statusText(io: Io): Promise<string> {
   const s = await bridgeStatus(io)
   const lines = [
-    `Bridge: ${s.running ? `running (pid ${s.pid})` : 'not running'}`,
+    `Bridge: ${s.running ? `running in the ${s.host === 'app' ? 'Claude Code for Safari app' : 'Node fallback'} (pid ${s.pid})` : 'not running'}`,
     `Extension: ${s.connected ? `connected (v${s.extensionVersion ?? '?'})` : 'not connected'}`,
     `Transport in use: ${s.connected ? 'Safari extension' : 'AppleScript fallback'}`,
   ]
@@ -418,9 +419,12 @@ export const register: Register = on => {
     const io = makeIo($)
     const arg = String((e as { args?: string }).args ?? '').trim()
     if (arg === 'install' || arg === 'open') {
-      const app = `${io.pluginRoot}/app/Claude Code for Safari.app`
-      const r = await io.run(['open', app], { timeoutMs: 15_000 })
-      if (r.exitCode !== 0) return { text: `Could not open the app at ${app}: ${r.stderr.trim()}. Build it with: cd "${io.pluginRoot}" && ./scripts/build-extension.sh` }
+      let r = await io.run(['open', '-b', 'com.michaelhelms.claude-code-safari'], { timeoutMs: 15_000 })
+      if (r.exitCode !== 0) {
+        const app = `${io.pluginRoot}/app/Claude Code for Safari.app`
+        r = await io.run(['open', app], { timeoutMs: 15_000 })
+        if (r.exitCode !== 0) return { text: `"Claude Code for Safari" is not installed. Download it, or build it with: cd "${io.pluginRoot}" && ./scripts/build-extension.sh` }
+      }
       return { text: `Opened "Claude Code for Safari". Now in Safari: Settings > Extensions > turn on "Claude Code for Safari" and allow it on every website.\n\n${await statusText(io)}` }
     }
     if (arg === 'start' || arg === 'reconnect') {

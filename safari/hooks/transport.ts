@@ -7,26 +7,76 @@ import type { Io } from './io'
 import { runInPage, SafariError } from './safari'
 
 export type Transport = 'extension' | 'applescript'
-export type BridgeStatus = { running: boolean; connected: boolean; extensionVersion?: string | null; pid?: number; error?: string }
+export type BridgeStatus = { running: boolean; connected: boolean; extensionVersion?: string | null; pid?: number; error?: string; host?: 'app' | 'node' }
 
 let bridgeStarted = false
 let nodeBinary: string | null = null
 export let lastStartError: string | null = null
+
+export const APP_BUNDLE_ID = 'com.michaelhelms.claude-code-safari'
+
+/** Where the bridge is: the app's loopback port with its token, or the Node bridge's socket. */
+export type AppTarget = { kind: 'app'; url: string; token: string }
+export type BridgeTarget = AppTarget | { kind: 'node'; socketPath: string }
 
 export async function bridgeSocket(io: Io): Promise<string> {
   const home = (await io.home()) ?? '/tmp'
   return `${home}/.claude/safari-bridge.sock`
 }
 
-export async function bridgeStatus(io: Io): Promise<BridgeStatus> {
+/** The discovery file the app writes inside its sandbox container. */
+export async function appDiscoveryPath(io: Io): Promise<string> {
+  const home = (await io.home()) ?? '/tmp'
+  return `${home}/Library/Containers/${APP_BUNDLE_ID}/Data/Library/Application Support/Claude Code for Safari/bridge.json`
+}
+
+async function appTarget(io: Io): Promise<AppTarget | null> {
   try {
-    const r = await io.fetch('http://bridge/status', { socketPath: await bridgeSocket(io) })
-    if (!r.ok) return { running: false, connected: false }
-    const s = JSON.parse(r.text) as { extensionConnected: boolean; extensionVersion: string | null; pid: number }
-    return { running: true, connected: !!s.extensionConnected, extensionVersion: s.extensionVersion, pid: s.pid }
+    const info = JSON.parse(await io.readText(await appDiscoveryPath(io))) as { port?: number; token?: string }
+    if (!info.port || !info.token) return null
+    return { kind: 'app', url: `http://127.0.0.1:${info.port}`, token: info.token }
   } catch {
-    return { running: false, connected: false }
+    return null
   }
+}
+
+let target: BridgeTarget | null = null
+
+async function fetchBridge(io: Io, t: BridgeTarget, path: string, init: { method?: string; body?: string } = {}) {
+  const headers: Record<string, string> = { 'content-type': 'application/json' }
+  if (t.kind === 'app') {
+    headers.authorization = `Bearer ${t.token}`
+    return io.fetch(`${t.url}${path}`, { ...init, headers })
+  }
+  return io.fetch(`http://bridge${path}`, { ...init, headers, socketPath: t.socketPath })
+}
+
+async function statusOf(io: Io, t: BridgeTarget): Promise<BridgeStatus | null> {
+  try {
+    const r = await fetchBridge(io, t, '/status')
+    if (!r.ok) return null
+    const s = JSON.parse(r.text) as { extensionConnected: boolean; extensionVersion: string | null; pid: number }
+    return { running: true, connected: !!s.extensionConnected, extensionVersion: s.extensionVersion, pid: s.pid, host: t.kind }
+  } catch {
+    return null
+  }
+}
+
+/** Finds a live bridge: the app first, then the Node bridge. Remembers the one that answered. */
+export async function bridgeStatus(io: Io): Promise<BridgeStatus> {
+  const cur = target
+  const candidates: BridgeTarget[] = []
+  if (cur) candidates.push(cur)
+  const app = await appTarget(io)
+  if (app && !(cur && cur.kind === 'app' && cur.url === app.url)) candidates.push(app)
+  const node: BridgeTarget = { kind: 'node', socketPath: await bridgeSocket(io) }
+  if (!(cur && cur.kind === 'node')) candidates.push(node)
+  for (const c of candidates) {
+    const s = await statusOf(io, c)
+    if (s) { target = c; return s }
+  }
+  target = null
+  return { running: false, connected: false }
 }
 
 async function findNode(io: Io): Promise<string> {
@@ -45,6 +95,15 @@ export async function ensureBridge(io: Io): Promise<BridgeStatus> {
   if (first.running) return first
   if (!bridgeStarted) {
     bridgeStarted = true
+    // The app hosts the bridge when it is installed: launch it hidden and wait for its discovery file.
+    const launched = await io.run(['open', '-g', '-b', APP_BUNDLE_ID, '--args', '--background'], { timeoutMs: 15_000 })
+    if (launched.exitCode === 0) {
+      for (let i = 0; i < 20; i++) {
+        await io.after(250)
+        const s = await bridgeStatus(io)
+        if (s.running) { bridgeStarted = false; return s }
+      }
+    }
     try {
       const node = await findNode(io)
       const script = `${io.pluginRoot}/bridge/bridge.mjs`
@@ -76,15 +135,14 @@ export async function ensureBridge(io: Io): Promise<BridgeStatus> {
 }
 
 export async function command<T>(io: Io, name: string, params: Record<string, unknown> = {}, timeoutMs = 60_000): Promise<T> {
+  if (!target) await bridgeStatus(io)
+  const t = target
+  if (!t) throw new SafariError('The Safari bridge is not running. Run /safari start, or call tabs_context to use AppleScript tab ids.')
   let r
   try {
-    r = await io.fetch('http://bridge/call', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ name, params, timeoutMs }),
-      socketPath: await bridgeSocket(io),
-    })
+    r = await fetchBridge(io, t, '/call', { method: 'POST', body: JSON.stringify({ name, params, timeoutMs }) })
   } catch {
+    target = null
     throw new SafariError('The Safari bridge is not running. Run /safari start, or call tabs_context to use AppleScript tab ids.')
   }
   let parsed: { result?: T; error?: string }

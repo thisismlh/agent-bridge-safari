@@ -21,7 +21,7 @@ const $ = {
   command: { register: async () => ({ command: 'safari' }) },
   ui: { status: () => {} },
   fs: {
-    read: async (p: string) => ({ base64: (await readFile(p)).toString('base64') }),
+    read: async (p: string, o?: any) => (o && o.as === 'bytes' ? { base64: (await readFile(p)).toString('base64') } : (await readFile(p)).toString('utf8')),
     write: async (p: string, t: string) => { await writeFile(p, t) },
     stat: async (p: string) => { const s = await stat(p); return { size: s.size } },
   },

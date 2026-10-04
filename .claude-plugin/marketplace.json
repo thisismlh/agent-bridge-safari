@@ -1,0 +1,19 @@
+{
+  "name": "claude-code-safari",
+  "owner": { "name": "Michael Helms", "email": "helms.michael@gmail.com" },
+  "metadata": {
+    "description": "Browser automation for Safari in Claude Code: tabs, pages, forms, console, network, screenshots.",
+    "version": "1.0.0"
+  },
+  "plugins": [
+    {
+      "name": "safari",
+      "source": "./safari",
+      "description": "Drive Safari from Claude Code through a signed Safari extension, with an AppleScript fallback.",
+      "version": "0.9.0",
+      "author": { "name": "Michael Helms" },
+      "category": "productivity",
+      "keywords": ["safari", "browser", "automation", "testing", "macos"]
+    }
+  ]
+}
