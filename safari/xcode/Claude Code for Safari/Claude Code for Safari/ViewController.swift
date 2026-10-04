@@ -59,7 +59,7 @@ class ViewController: NSViewController, WKNavigationDelegate, WKScriptMessageHan
             SFSafariApplication.showPreferencesForExtension(withIdentifier: extensionBundleIdentifier) { _ in }
         case "copy-command":
             NSPasteboard.general.clearContents()
-            NSPasteboard.general.setString("/plugin marketplace add helms/claude-code-safari && /plugin install safari@claude-code-safari", forType: .string)
+            NSPasteboard.general.setString("/plugin marketplace add thisismlh/claude-code-safari && /plugin install safari@claude-code-safari", forType: .string)
         case "toggle-login":
             if #available(macOS 13.0, *) {
                 let svc = SMAppService.mainApp

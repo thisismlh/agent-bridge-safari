@@ -199,7 +199,11 @@ final class Bridge {
         q.sync {
             guard server == nil else { return }
             do {
-                let s = try HTTPServer(preferredPort: Bridge.preferredPort)
+                let args = ProcessInfo.processInfo.arguments
+                var preferred = Bridge.preferredPort
+                if let i = args.firstIndex(of: "--port"), i + 1 < args.count, let p = UInt16(args[i + 1]) { preferred = p }
+                if let i = args.firstIndex(of: "--token"), i + 1 < args.count { pairedTokens.append(args[i + 1]) }
+                let s = try HTTPServer(preferredPort: preferred, attempts: preferred == Bridge.preferredPort ? 10 : 1)
                 var bytes = [UInt8](repeating: 0, count: 32)
                 _ = SecRandomCopyBytes(kSecRandomDefault, bytes.count, &bytes)
                 token = bytes.map { String(format: "%02x", $0) }.joined()

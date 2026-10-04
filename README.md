@@ -22,7 +22,7 @@ extension by its origin, and accepts Claude Code only with a per-session token.
 2. In Claude Code:
 
    ```
-   /plugin marketplace add helms/claude-code-safari
+   /plugin marketplace add thisismlh/claude-code-safari
    /plugin install safari@claude-code-safari
    ```
 
