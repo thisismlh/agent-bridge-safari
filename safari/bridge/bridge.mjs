@@ -38,7 +38,8 @@ const readBody = req => new Promise((resolve, reject) => {
   req.on('end', () => { try { resolve(chunks.length ? JSON.parse(Buffer.concat(chunks).toString('utf8')) : {}) } catch (e) { reject(e) } })
   req.on('error', reject)
 })
-const isConnected = () => Date.now() - lastSeen < CONNECTED_WINDOW_MS
+const isConnected = () => primaryOrigin() !== null
+const primaryVersion = () => { const p = primaryOrigin(); const i = p && instances.get(p); return i ? i.version : null }
 
 // Safari can keep stale copies of the extension alive after a rebuild, each polling here.
 // Commands go to the copy that can see tabs; ties go to the most recently seen one.
@@ -46,9 +47,15 @@ const isConnected = () => Date.now() - lastSeen < CONNECTED_WINDOW_MS
 // more tabs, so tab ids and "current tab" stay consistent across calls (Safari runs one copy
 // per profile, each with its own windows).
 let primary = null
+const RECENT_MS = 3_000
+// Usable now: a copy with an open poll waiting here, or one seen within the last few seconds
+// (between its polls while it runs a command). A copy Safari has killed drops out at once.
+function usable(origin, i, now) {
+  return waiters.some(w => w.origin === origin && !w.res.destroyed && !w.res.writableEnded) || now - i.lastSeen <= RECENT_MS
+}
 function primaryOrigin() {
   const now = Date.now()
-  const alive = [...instances].filter(([, i]) => now - i.lastSeen <= CONNECTED_WINDOW_MS)
+  const alive = [...instances].filter(([o, i]) => usable(o, i, now))
   const current = alive.find(([o]) => o === primary)
   let best = null
   // Rank: can reach the active page's content script, then sees more tabs, then most recent.
@@ -76,7 +83,7 @@ function dispatch() {
 const modServer = http.createServer(async (req, res) => {
   try {
     if (req.method === 'GET' && req.url === '/status') {
-      return json(res, 200, { ok: true, pid: process.pid, extensionConnected: isConnected(), lastSeen, extensionVersion, primary: primaryOrigin(), instances: Object.fromEntries(instances), lastOrigin, lastContentType, queued: queue.length, pending: pending.size, port: PORT })
+      return json(res, 200, { ok: true, pid: process.pid, extensionConnected: isConnected(), lastSeen, extensionVersion: primaryVersion(), primary: primaryOrigin(), instances: Object.fromEntries(instances), lastOrigin, lastContentType, queued: queue.length, pending: pending.size, port: PORT })
     }
     if (req.method === 'POST' && req.url === '/call') {
       const body = await readBody(req)
@@ -89,7 +96,7 @@ const modServer = http.createServer(async (req, res) => {
         const timer = setTimeout(() => { pending.delete(id); unqueue(); resolve({ error: `Safari did not answer ${body.name} within ${Math.round(timeoutMs / 1000)} s.` }) }, timeoutMs)
         // Nothing fetched it within PICKUP_MS: the extension is gone even if lastSeen is recent.
         const pickup = setTimeout(() => {
-          if (queue.some(c => c.id === id)) { clearTimeout(timer); pending.delete(id); unqueue(); lastSeen = 0; resolve({ status: 503, error: 'Safari extension is not connected.' }) }
+          if (queue.some(c => c.id === id)) { clearTimeout(timer); pending.delete(id); unqueue(); primary = null; lastSeen = 0; resolve({ status: 503, error: 'Safari extension is not connected.' }) }
         }, PICKUP_MS)
         pending.set(id, { resolve, timer, pickup })
       })
@@ -126,7 +133,6 @@ const extServer = http.createServer(async (req, res) => {
       const origin = String(req.headers.origin || '')
       for (const [o, i] of instances) if (Date.now() - i.lastSeen > 5 * CONNECTED_WINDOW_MS) instances.delete(o)
       instances.set(origin, { lastSeen, tabs: typeof body.tabs === 'number' ? body.tabs : -1, reach: typeof body.reach === 'number' ? body.reach : 0, version: body.version || null })
-      if (body.version && origin === primaryOrigin()) extensionVersion = body.version
       const w = { res, timer: null, origin }
       w.timer = setTimeout(() => { const i = waiters.indexOf(w); if (i >= 0) waiters.splice(i, 1); res.writeHead(204); res.end() }, POLL_HOLD_MS)
       req.on('close', () => { clearTimeout(w.timer); const i = waiters.indexOf(w); if (i >= 0) waiters.splice(i, 1) })

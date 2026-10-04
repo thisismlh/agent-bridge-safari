@@ -54,7 +54,7 @@ describe('bridge', () => {
     const out = await call
     expect(out.status).toBe(200)
     expect(out.body).toEqual({ result: { pong: true } })
-    expect((await modCall('/status')).body.extensionConnected).toBe(true)
+    expect((await modCall('/status')).body.extensionConnected).toBe(true) // seen within the last 3 s
   })
 
   test('an extension error comes back as 502 with its message', async () => {
