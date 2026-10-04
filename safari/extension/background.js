@@ -2,7 +2,7 @@
 // Safari's tabs, and keeps per-tab console and network buffers.
 
 var BRIDGE = 'http://127.0.0.1:47831';
-var VERSION = '0.7.2';
+var VERSION = '0.8.0';
 var RING = 500;
 
 var consoleLogs = new Map();
@@ -17,8 +17,12 @@ function push(map, tabId, entry) {
 }
 function sleep(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
 
+var csStatus = new Map(); // tabId -> { state, at, message?, url }
 browser.runtime.onMessage.addListener(function (msg, sender) {
-  if (msg && msg.type === 'console' && sender.tab) push(consoleLogs, sender.tab.id, msg.entry);
+  if (!msg || !sender.tab) return;
+  if (msg.type === 'console') push(consoleLogs, sender.tab.id, msg.entry);
+  else if (msg.type === 'cs-ready') csStatus.set(sender.tab.id, { state: 'ready', at: Date.now(), url: msg.url, runtime: msg.runtime });
+  else if (msg.type === 'cs-error') csStatus.set(sender.tab.id, { state: 'error', at: Date.now(), url: msg.url, message: msg.message });
 });
 
 var requests = new Map();
@@ -103,7 +107,11 @@ async function pageCall(tab, fn, args) {
     }
     reply = await sendToPage(tab.id, msg);
   }
-  if (reply === undefined) throw new Error('The page in tab ' + tab.id + ' did not answer. If it is still loading, wait and retry; if a second copy of this extension is enabled in Safari, disable it.');
+  if (reply === undefined) {
+    var st = csStatus.get(tab.id);
+    var why = !st ? 'its content script never reported in' : st.state === 'error' ? 'its content script failed: ' + st.message : 'its content script reported ready at ' + new Date(st.at).toISOString() + ' for ' + st.url;
+    throw new Error('The page in tab ' + tab.id + ' did not answer; ' + why + '. If it is still loading, wait and retry.');
+  }
   if (reply.error !== undefined) throw new Error(reply.error);
   return reply.ok;
 }
@@ -179,6 +187,10 @@ var handlers = {
     await browser.tabs.update(t.id, { active: true });
     try { await browser.windows.update(t.windowId, { focused: true }); } catch (e) {}
     return { tabId: t.id };
+  },
+  debug: async function (p) {
+    var t = await tabOrActive(p.tabId);
+    return { version: VERSION, tab: { id: t.id, url: t.url, status: t.status }, contentScript: csStatus.get(t.id) || null };
   },
   console: async function (p) {
     var t = await tabOrActive(p.tabId);

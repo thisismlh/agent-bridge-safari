@@ -2,6 +2,8 @@
 // window.__claude (page-runtime.js, loaded just before this file), and relays
 // console output from the page world.
 (function () {
+  function report(type, extra) { try { browser.runtime.sendMessage(Object.assign({ type: type, url: location.href }, extra || {})); } catch (e) {} }
+  try {
   // Guard per extension runtime instance, not per window: after Safari reloads the extension,
   // pages still hold the old instance's content script, and the new instance must be able to
   // install its own listener when the background re-injects this file.
@@ -64,4 +66,8 @@
       }
     });
   });
+  report('cs-ready', { runtime: typeof window.__claude });
+  } catch (e) {
+    report('cs-error', { message: String((e && (e.stack || e.message)) || e) });
+  }
 })();
