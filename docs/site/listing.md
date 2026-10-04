@@ -50,3 +50,7 @@ Safari, and ask Claude Code to "read the current Safari page".
 
 App Store requires 1280×800, 1440×900, 2560×1600 or 2880×1800. `docs/site/screenshots/`
 holds the sources; `scripts/listing-screenshots.sh` pads them to 2880×1800.
+
+The current sources were captured at 1x through the accessibility screenshot tool, so
+they are drafts. For the final set, grant Screen Recording to Terminal and capture at
+Retina resolution with `screencapture -l <window id>`, then re-run the script.
