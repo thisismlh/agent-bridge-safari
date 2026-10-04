@@ -5,8 +5,9 @@
   if (window.__claudeContentInstalled) return;
   window.__claudeContentInstalled = true;
 
-  // Console hook in the page world. A strict page CSP can refuse the script; console
-  // capture is then unavailable on that page, while every other tool still works.
+  // Console hook in the page world. Normally the manifest's MAIN-world content script has
+  // already installed it before any page script ran; this is the fallback for Safari builds
+  // that ignore "world". A strict page CSP can refuse the fallback script.
   try {
     var s = document.createElement("script");
     s.src = browser.runtime.getURL('console-hook.js');
