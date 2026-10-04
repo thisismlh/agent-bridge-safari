@@ -42,13 +42,21 @@ const isConnected = () => Date.now() - lastSeen < CONNECTED_WINDOW_MS
 
 // Safari can keep stale copies of the extension alive after a rebuild, each polling here.
 // Commands go to the copy that can see tabs; ties go to the most recently seen one.
+// Sticky: once chosen, the primary stays while it is alive and no other copy sees strictly
+// more tabs, so tab ids and "current tab" stay consistent across calls (Safari runs one copy
+// per profile, each with its own windows).
+let primary = null
 function primaryOrigin() {
+  const now = Date.now()
+  const alive = [...instances].filter(([, i]) => now - i.lastSeen <= CONNECTED_WINDOW_MS)
+  const current = alive.find(([o]) => o === primary)
   let best = null
-  for (const [origin, i] of instances) {
-    if (Date.now() - i.lastSeen > CONNECTED_WINDOW_MS) continue
+  for (const [origin, i] of alive) {
     if (!best || i.tabs > best.tabs || (i.tabs === best.tabs && i.lastSeen > best.lastSeen)) best = { origin, ...i }
   }
-  return best ? best.origin : null
+  if (!best) { primary = null; return null }
+  if (!current || best.tabs > current[1].tabs) primary = best.origin
+  return primary
 }
 function dispatch() {
   const primary = primaryOrigin()
