@@ -24,6 +24,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool { false }
 
+    /// claudesafari://pair?token=<hex> from a Claude Code session.
+    func application(_ application: NSApplication, open urls: [URL]) {
+        for url in urls where url.scheme == "claudesafari" && url.host == "pair" {
+            let items = URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems ?? []
+            if let t = items.first(where: { $0.name == "token" })?.value { Bridge.shared.pair(token: t) }
+        }
+    }
+
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
         if !flag { showWindow() }
         return true

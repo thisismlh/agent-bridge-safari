@@ -24,20 +24,41 @@ export async function bridgeSocket(io: Io): Promise<string> {
   return `${home}/.claude/safari-bridge.sock`
 }
 
-/** The discovery file the app writes inside its sandbox container. */
-export async function appDiscoveryPath(io: Io): Promise<string> {
-  const home = (await io.home()) ?? '/tmp'
-  return `${home}/Library/Containers/${APP_BUNDLE_ID}/Data/Library/Application Support/Claude Code for Safari/bridge.json`
+// The app is sandboxed and macOS keeps other processes out of its container, so the mod
+// hands the app a token of its own through the claudesafari:// URL scheme and finds the
+// port by scanning a short range for the X-Claude-Bridge header.
+export const APP_PORTS = Array.from({ length: 10 }, (_, i) => 47831 + i)
+let sessionToken: string | null = null
+function pairingToken(): string {
+  if (!sessionToken) sessionToken = Array.from(crypto.getRandomValues(new Uint8Array(24)), b => b.toString(16).padStart(2, '0')).join('')
+  return sessionToken
 }
 
-async function appTarget(io: Io): Promise<AppTarget | null> {
-  try {
-    const info = JSON.parse(await io.readText(await appDiscoveryPath(io))) as { port?: number; token?: string }
-    if (!info.port || !info.token) return null
-    return { kind: 'app', url: `http://127.0.0.1:${info.port}`, token: info.token }
-  } catch {
-    return null
+async function pairWithApp(io: Io): Promise<void> {
+  await io.run(['open', '-g', `claudesafari://pair?token=${pairingToken()}`], { timeoutMs: 15_000 })
+}
+
+/** Scans the port range for an app bridge that accepts this session's token (pairing once if it refuses). */
+async function appTarget(io: Io, pair = true): Promise<AppTarget | null> {
+  for (const port of APP_PORTS) {
+    const url = `http://127.0.0.1:${port}`
+    try {
+      const r = await io.fetch(`${url}/status`, { headers: { authorization: `Bearer ${pairingToken()}` } })
+      if (r.headers['x-claude-bridge'] !== '1') continue
+      if (r.ok) return { kind: 'app', url, token: pairingToken() }
+      if (r.status === 403 && pair) {
+        await pairWithApp(io)
+        for (let i = 0; i < 8; i++) {
+          await io.after(250)
+          const again = await io.fetch(`${url}/status`, { headers: { authorization: `Bearer ${pairingToken()}` } })
+          if (again.ok) return { kind: 'app', url, token: pairingToken() }
+        }
+      }
+    } catch {
+      /* nothing on this port */
+    }
   }
+  return null
 }
 
 let target: BridgeTarget | null = null
@@ -98,7 +119,9 @@ export async function ensureBridge(io: Io): Promise<BridgeStatus> {
     // The app hosts the bridge when it is installed: launch it hidden and wait for its discovery file.
     const launched = await io.run(['open', '-g', '-b', APP_BUNDLE_ID, '--args', '--background'], { timeoutMs: 15_000 })
     if (launched.exitCode === 0) {
-      for (let i = 0; i < 20; i++) {
+      await io.after(1500)
+      await pairWithApp(io)
+      for (let i = 0; i < 16; i++) {
         await io.after(250)
         const s = await bridgeStatus(io)
         if (s.running) { bridgeStarted = false; return s }

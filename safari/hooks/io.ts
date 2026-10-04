@@ -3,7 +3,7 @@
 // register.ts builds this object from `$` and the other modules take `Io`.
 
 export type RunResult = { exitCode: number; stdout: string; stderr: string }
-export type FetchResult = { status: number; ok: boolean; text: string }
+export type FetchResult = { status: number; ok: boolean; text: string; headers: Record<string, string> }
 
 export type Io = {
   pluginRoot: string

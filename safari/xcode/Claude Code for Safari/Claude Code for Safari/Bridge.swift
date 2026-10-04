@@ -154,7 +154,8 @@ final class Bridge {
     private let q = DispatchQueue(label: "bridge.state")
     private var server: HTTPServer?
     private(set) var port: UInt16 = 0
-    private(set) var token = ""
+    private(set) var token = ""           // the app's own token, written to the discovery file
+    private var pairedTokens: [String] = []    // tokens handed over by Claude Code sessions via claudesafari://pair
     private var queue: [Command] = []
     private var waiters: [Waiter] = []
     private var instances: [String: Instance] = [:]
@@ -228,7 +229,19 @@ final class Bridge {
     }
     private func fromClaude(_ req: HTTPRequest) -> Bool {
         let auth = req.headers["authorization"] ?? ""
-        return !token.isEmpty && auth == "Bearer \(token)"
+        guard auth.hasPrefix("Bearer ") else { return false }
+        let t = String(auth.dropFirst(7))
+        return (!token.isEmpty && t == token) || pairedTokens.contains(t)
+    }
+    /// A Claude Code session pairs by opening claudesafari://pair?token=<hex>. Several sessions may
+    /// be paired at once; the list is bounded so a flood cannot grow it without limit.
+    func pair(token t: String) {
+        guard t.count >= 32, t.count <= 128, t.allSatisfy({ $0.isHexDigit }) else { return }
+        q.async {
+            self.pairedTokens.removeAll { $0 == t }
+            self.pairedTokens.append(t)
+            if self.pairedTokens.count > 32 { self.pairedTokens.removeFirst() }
+        }
     }
 
     // MARK: instances and primary (same rules as bridge.mjs)
