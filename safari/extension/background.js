@@ -2,7 +2,7 @@
 // Safari's tabs, and keeps per-tab console and network buffers.
 
 var BRIDGE = 'http://127.0.0.1:47831';
-var VERSION = '0.4.0';
+var VERSION = '0.5.0';
 var RING = 500;
 
 var consoleLogs = new Map();
@@ -86,23 +86,36 @@ async function waitLoaded(tabId, timeoutMs, since) {
   return false;
 }
 
+async function sendToPage(tabId, msg) {
+  try { return await browser.tabs.sendMessage(tabId, msg); } catch (e) { return undefined; }
+}
 async function pageCall(tab, fn, args) {
-  var reply;
-  try {
-    reply = await browser.tabs.sendMessage(tab.id, { type: 'page', fn: fn, args: args });
-  } catch (e) {
-    // The page loaded before the extension was enabled, or the script never ran: inject once and retry.
+  var msg = { type: 'page', fn: fn, args: args };
+  var reply = await sendToPage(tab.id, msg);
+  if (reply === undefined) {
+    // No listener answered: the page loaded before this copy of the extension was enabled,
+    // or its content script did not run. Inject and retry once.
     try {
-      await browser.tabs.executeScript(tab.id, { file: 'page-runtime.js' });
-      await browser.tabs.executeScript(tab.id, { file: 'content.js' });
-      reply = await browser.tabs.sendMessage(tab.id, { type: 'page', fn: fn, args: args });
+      await browser.tabs.executeScript(tab.id, { file: 'page-runtime.js', runAt: 'document_start' });
+      await browser.tabs.executeScript(tab.id, { file: 'content.js', runAt: 'document_start' });
     } catch (e2) {
       throw new Error('Cannot reach the page in tab ' + tab.id + ' (' + (tab.url || 'no url') + '). Safari internal pages, PDFs and pages that refused the extension cannot be scripted.');
     }
+    reply = await sendToPage(tab.id, msg);
   }
-  if (!reply) throw new Error('The page did not answer; it may still be loading.');
+  if (reply === undefined) throw new Error('The page in tab ' + tab.id + ' did not answer. If it is still loading, wait and retry; if a second copy of this extension is enabled in Safari, disable it.');
   if (reply.error !== undefined) throw new Error(reply.error);
   return reply.ok;
+}
+// Can this copy of the extension reach the active tab's content script?
+async function reach() {
+  try {
+    var tabs = await browser.tabs.query({ active: true, lastFocusedWindow: true });
+    if (!tabs.length) tabs = await browser.tabs.query({ active: true });
+    if (!tabs.length) return 0;
+    var r = await sendToPage(tabs[0].id, { type: 'ping' });
+    return r && r.pong ? 1 : 0;
+  } catch (e) { return 0; }
 }
 
 function dataUrlToBase64(u) { return u.slice(u.indexOf(',') + 1); }
@@ -203,7 +216,7 @@ async function loop() {
   for (;;) {
     try {
       var count = 0; try { count = (await browser.tabs.query({})).length; } catch (e) {}
-      var r = await fetch(BRIDGE + '/ext/poll', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ version: VERSION, tabs: count }) });
+      var r = await fetch(BRIDGE + '/ext/poll', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ version: VERSION, tabs: count, reach: await reach() }) });
       if (r.status === 204) continue;
       if (!r.ok) { await sleep(1000); continue; }
       var cmd = await r.json();

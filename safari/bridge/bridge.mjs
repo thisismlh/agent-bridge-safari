@@ -51,11 +51,13 @@ function primaryOrigin() {
   const alive = [...instances].filter(([, i]) => now - i.lastSeen <= CONNECTED_WINDOW_MS)
   const current = alive.find(([o]) => o === primary)
   let best = null
+  // Rank: can reach the active page's content script, then sees more tabs, then most recent.
+  const score = i => i.reach * 1000 + i.tabs
   for (const [origin, i] of alive) {
-    if (!best || i.tabs > best.tabs || (i.tabs === best.tabs && i.lastSeen > best.lastSeen)) best = { origin, ...i }
+    if (!best || score(i) > score(best) || (score(i) === score(best) && i.lastSeen > best.lastSeen)) best = { origin, ...i }
   }
   if (!best) { primary = null; return null }
-  if (!current || best.tabs > current[1].tabs) primary = best.origin
+  if (!current || score(best) > score(current[1])) primary = best.origin
   return primary
 }
 function dispatch() {
@@ -122,7 +124,7 @@ const extServer = http.createServer(async (req, res) => {
       const body = await readBody(req)
       lastSeen = Date.now()
       const origin = String(req.headers.origin || '')
-      instances.set(origin, { lastSeen, tabs: typeof body.tabs === 'number' ? body.tabs : -1, version: body.version || null })
+      instances.set(origin, { lastSeen, tabs: typeof body.tabs === 'number' ? body.tabs : -1, reach: typeof body.reach === 'number' ? body.reach : 0, version: body.version || null })
       if (body.version && origin === primaryOrigin()) extensionVersion = body.version
       const w = { res, timer: null, origin }
       w.timer = setTimeout(() => { const i = waiters.indexOf(w); if (i >= 0) waiters.splice(i, 1); res.writeHead(204); res.end() }, POLL_HOLD_MS)

@@ -41,6 +41,7 @@
   }
 
   browser.runtime.onMessage.addListener(function (msg) {
+    if (msg && msg.type === 'ping') return Promise.resolve({ pong: true });
     if (!msg || msg.type !== 'page') return;
     if (msg.fn === 'evaluate') return evaluateInPage(String(msg.args));
     return new Promise(function (resolve) {

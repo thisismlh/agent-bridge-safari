@@ -135,6 +135,10 @@ describe('bridge', () => {
     void extCall('/ext/poll', { version: 'new', tabs: 3 }, 'safari-web-extension://PEER').catch(() => {})
     await new Promise(r => setTimeout(r, 30))
     expect((await modCall('/status')).body.primary).toBe('safari-web-extension://PEER')
+    // A copy that can reach the page beats one that merely sees more tabs.
+    void extCall('/ext/poll', { version: 'new', tabs: 1, reach: 1 }, 'safari-web-extension://LIVE').catch(() => {})
+    await new Promise(r => setTimeout(r, 30))
+    expect((await modCall('/status')).body.primary).toBe('safari-web-extension://LIVE')
   })
 
   test('a second bridge on the same socket refuses to start', async () => {
