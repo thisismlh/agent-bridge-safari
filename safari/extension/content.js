@@ -2,8 +2,13 @@
 // window.__claude (page-runtime.js, loaded just before this file), and relays
 // console output from the page world.
 (function () {
-  if (window.__claudeContentInstalled) return;
-  window.__claudeContentInstalled = true;
+  // Guard per extension runtime instance, not per window: after Safari reloads the extension,
+  // pages still hold the old instance's content script, and the new instance must be able to
+  // install its own listener when the background re-injects this file.
+  if (browser.runtime.__claudeContentInstalled) return;
+  browser.runtime.__claudeContentInstalled = true;
+  var relayInstalled = !!window.__claudeRelayInstalled;
+  window.__claudeRelayInstalled = true;
 
   // Console hook in the page world, installed before any page script runs: an inline
   // script executes synchronously on insertion at document_start. Pages whose CSP forbids
@@ -18,7 +23,7 @@
       if (!viaSrc) s.remove(); else s.addEventListener('load', function () { s.remove(); });
     } catch (e) {}
   }
-  installHook(false);
+  if (!relayInstalled) installHook(false);
 
   window.addEventListener('message', function (ev) {
     if (ev.source !== window || !ev.data || !ev.data.__claudeConsole) return;
