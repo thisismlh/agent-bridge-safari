@@ -68,7 +68,7 @@ export function parseKeys(text: string): KeyPress[] {
 /** Turns a bridge error message into the one sentence the model should read. */
 export function explainSafariError(message: string): string {
   if (/Allow JavaScript from Apple Events/i.test(message)) {
-    return 'Safari is blocking JavaScript from Apple Events. In Safari: Settings > Advanced > turn on "Show features for web developers", then menu bar Develop > "Allow JavaScript from Apple Events". Then retry.'
+    return 'Safari is blocking JavaScript from Apple Events. In Safari: Settings > Developer > "Allow JavaScript from Apple Events" (Safari 27; older Safari: Develop menu). Then retry.'
   }
   if (/not allowed assistive access|osascript is not allowed|-1719.*System Events|-25211/i.test(message)) {
     return 'macOS is blocking keyboard control. Open System Settings > Privacy & Security > Accessibility and allow the app running Claude Code (and osascript), then retry.'

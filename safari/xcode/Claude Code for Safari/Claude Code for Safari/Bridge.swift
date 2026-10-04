@@ -128,12 +128,33 @@ final class HTTPServer {
                 headers[line[..<i].lowercased()] = line[line.index(after: i)...].trimmingCharacters(in: .whitespaces)
             }
         }
-        let length = Int(headers["content-length"] ?? "0") ?? 0
         var body = Data(data[he.upperBound...])
-        while body.count < length {
-            let n = recv(fd, &buf, min(buf.count, length - body.count), 0)
-            if n <= 0 { return nil }
-            body.append(buf, count: n)
+        if (headers["transfer-encoding"] ?? "").lowercased().contains("chunked") {
+            // Chunked bodies (Node's http client sends these when no Content-Length is given).
+            var raw = body
+            var decoded = Data()
+            while true {
+                guard let lineEnd = raw.range(of: Data("\r\n".utf8)) else {
+                    let n = recv(fd, &buf, buf.count, 0); if n <= 0 { return nil }; raw.append(buf, count: n); continue
+                }
+                let sizeText = String(data: raw[..<lineEnd.lowerBound], encoding: .utf8)?.split(separator: ";").first.map(String.init) ?? "0"
+                guard let size = Int(sizeText.trimmingCharacters(in: .whitespaces), radix: 16) else { return nil }
+                while raw.count < lineEnd.upperBound + size + 2 {
+                    let n = recv(fd, &buf, buf.count, 0); if n <= 0 { return nil }; raw.append(buf, count: n)
+                }
+                if size == 0 { break }
+                decoded.append(raw[lineEnd.upperBound..<(lineEnd.upperBound + size)])
+                raw = Data(raw[(lineEnd.upperBound + size + 2)...])
+                if decoded.count > 16 * 1024 * 1024 { return nil }
+            }
+            body = decoded
+        } else {
+            let length = Int(headers["content-length"] ?? "0") ?? 0
+            while body.count < length {
+                let n = recv(fd, &buf, min(buf.count, length - body.count), 0)
+                if n <= 0 { return nil }
+                body.append(buf, count: n)
+            }
         }
         return HTTPRequest(method: String(requestLine[0]), path: String(requestLine[1]), headers: headers, body: body)
     }

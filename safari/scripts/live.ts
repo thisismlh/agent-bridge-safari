@@ -30,7 +30,8 @@ const $ = {
   http: {
     fetch: (url: string, init: any = {}) => new Promise((resolve, reject) => {
       const u = new URL(url)
-      const req = http.request({ socketPath: init.socketPath, host: init.socketPath ? undefined : u.hostname, port: init.socketPath ? undefined : u.port, path: u.pathname + u.search, method: init.method ?? 'GET', headers: init.headers ?? {} }, res => {
+      const hdrs = { ...(init.headers ?? {}) }; if (init.body) hdrs['content-length'] = String(Buffer.byteLength(init.body))
+      const req = http.request({ socketPath: init.socketPath, host: init.socketPath ? undefined : u.hostname, port: init.socketPath ? undefined : u.port, path: u.pathname + u.search, method: init.method ?? 'GET', headers: hdrs }, res => {
         let text = ''; res.on('data', d => (text += d)); res.on('end', () => resolve({ status: res.statusCode, ok: res.statusCode! < 300, headers: Object.fromEntries(Object.entries(res.headers).map(([k, v]) => [k.toLowerCase(), String(v)])), text }))
       })
       req.on('error', reject); if (init.body) req.write(init.body); req.end()

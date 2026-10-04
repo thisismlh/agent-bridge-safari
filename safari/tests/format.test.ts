@@ -52,7 +52,7 @@ describe('formatting', () => {
 
 describe('explainSafariError', () => {
   test('names the Develop menu setting', async () => {
-    expect(explainSafariError("Safari got an error: You must enable 'Allow JavaScript from Apple Events' ...")).toContain('Develop > "Allow JavaScript from Apple Events"')
+    expect(explainSafariError("Safari got an error: You must enable 'Allow JavaScript from Apple Events' ...")).toContain('Settings > Developer > "Allow JavaScript from Apple Events"')
   })
   test('stale tab ids point at tabs_context', async () => {
     expect(explainSafariError("Can't get window 1. Invalid index. (-1719)")).toContain('tabs_context')
