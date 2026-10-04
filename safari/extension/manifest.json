@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "Claude Code for Safari",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "description": "Lets Claude Code read and drive Safari tabs through a local bridge.",
   "background": {
     "scripts": [
@@ -15,18 +15,8 @@
         "<all_urls>"
       ],
       "js": [
-        "console-hook.js"
-      ],
-      "run_at": "document_start",
-      "all_frames": false,
-      "world": "MAIN"
-    },
-    {
-      "matches": [
-        "<all_urls>"
-      ],
-      "js": [
         "page-runtime.js",
+        "hook-src.js",
         "content.js"
       ],
       "run_at": "document_start",
