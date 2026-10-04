@@ -1,5 +1,5 @@
 {
-  "name": "claude-code-safari",
+  "name": "agent-bridge-safari",
   "owner": { "name": "Michael Helms", "email": "helms.michael@gmail.com" },
   "metadata": {
     "description": "Browser automation for Safari in Claude Code: tabs, pages, forms, console, network, screenshots.",

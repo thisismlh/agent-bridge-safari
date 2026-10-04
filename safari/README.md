@@ -23,8 +23,8 @@ signing, no extension install.
 ## One-time setup (extension)
 
 1. Build and register the app: `./scripts/build-extension.sh`, then `/safari install`
-   in Claude Code (or open `app/Claude Code for Safari.app`).
-2. Safari > Settings > Extensions > turn on "Claude Code for Safari" and allow it on
+   in Claude Code (or open `app/Agent Bridge for Safari.app`).
+2. Safari > Settings > Extensions > turn on "Agent Bridge for Safari" and allow it on
    every website.
 3. Unsigned builds only: Safari > Settings > Developer > "Allow unsigned extensions"
    (Safari 27 moved it there from the Develop menu; it resets when Safari restarts).
@@ -42,7 +42,7 @@ shows the extension version the bridge sees.
 
 `/safari` shows bridge and extension status, including whether the app or the Node
 fallback is hosting the bridge. Claude Code launches the app hidden when it is not
-running and pairs with it over `claudesafari://pair?token=…`. Real keyboard shortcuts through
+running and pairs with it over `agentbridge://pair?token=…`. Real keyboard shortcuts through
 `press_key` (anything other than Enter, Tab, Escape) still need Accessibility
 permission for the app running Claude Code.
 

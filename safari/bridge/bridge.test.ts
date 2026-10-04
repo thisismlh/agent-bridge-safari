@@ -11,7 +11,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const BRIDGE_MJS = fileURLToPath(new URL('./bridge.mjs', import.meta.url))
-const APP_BIN = fileURLToPath(new URL('../app/Claude Code for Safari.app/Contents/MacOS/Claude Code for Safari', import.meta.url))
+const APP_BIN = fileURLToPath(new URL('../app/Agent Bridge for Safari.app/Contents/MacOS/Agent Bridge for Safari', import.meta.url))
 const TOKEN = 'a'.repeat(48)
 
 type Driver = {

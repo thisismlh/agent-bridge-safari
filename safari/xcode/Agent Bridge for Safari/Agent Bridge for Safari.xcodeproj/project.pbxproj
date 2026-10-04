@@ -8,6 +8,8 @@
 
 /* Begin PBXBuildFile section */
 		286D01593071876D00B0D2D0 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 286D01583071876D00B0D2D0 /* AppDelegate.swift */; };
+		9A64FAB51984495C8B74E42E /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9CB481168DE44B78BC8681B4 /* main.swift */; };
+		52CB9D670BB44811A9A75FBE /* MCPServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69F4EF9847554B088E6A2F3D /* MCPServer.swift */; };
 		94B8D5B60B0F4A429EB5C754 /* Bridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE7C328DDCCE47BB83715A4F /* Bridge.swift */; };
 		286D015D3071876D00B0D2D0 /* Main.html in Resources */ = {isa = PBXBuildFile; fileRef = 286D015B3071876D00B0D2D0 /* Main.html */; };
 		286D015F3071876D00B0D2D0 /* Icon.png in Resources */ = {isa = PBXBuildFile; fileRef = 286D015E3071876D00B0D2D0 /* Icon.png */; };
@@ -17,7 +19,7 @@
 		286D01653071876D00B0D2D0 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 286D01643071876D00B0D2D0 /* ViewController.swift */; };
 		286D01683071876D00B0D2D0 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 286D01663071876D00B0D2D0 /* Main.storyboard */; };
 		286D016A3071876E00B0D2D0 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 286D01693071876E00B0D2D0 /* Assets.xcassets */; };
-		286D01713071876E00B0D2D0 /* Claude Code for Safari Extension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 286D01703071876E00B0D2D0 /* Claude Code for Safari Extension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		286D01713071876E00B0D2D0 /* Agent Bridge for Safari Extension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 286D01703071876E00B0D2D0 /* Agent Bridge for Safari Extension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		286D01763071876E00B0D2D0 /* SafariWebExtensionHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 286D01753071876E00B0D2D0 /* SafariWebExtensionHandler.swift */; };
 		286D01873071876E00B0D2D0 /* background.js in Resources */ = {isa = PBXBuildFile; fileRef = 286D01823071876E00B0D2D0 /* background.js */; };
 		286D01883071876E00B0D2D0 /* page-runtime.js in Resources */ = {isa = PBXBuildFile; fileRef = 286D01833071876E00B0D2D0 /* page-runtime.js */; };
@@ -33,7 +35,7 @@
 			containerPortal = 286D014D3071876D00B0D2D0 /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = 286D016F3071876E00B0D2D0;
-			remoteInfo = "Claude Code for Safari Extension";
+			remoteInfo = "Agent Bridge for Safari Extension";
 		};
 /* End PBXContainerItemProxy section */
 
@@ -43,15 +45,17 @@
 			dstPath = "";
 			dstSubfolder = PlugIns;
 			files = (
-				286D01713071876E00B0D2D0 /* Claude Code for Safari Extension.appex in Embed Foundation Extensions */,
+				286D01713071876E00B0D2D0 /* Agent Bridge for Safari Extension.appex in Embed Foundation Extensions */,
 			);
 			name = "Embed Foundation Extensions";
 		};
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		286D01553071876D00B0D2D0 /* Claude Code for Safari.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Claude Code for Safari.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		286D01553071876D00B0D2D0 /* Agent Bridge for Safari.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Agent Bridge for Safari.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		286D01583071876D00B0D2D0 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		9CB481168DE44B78BC8681B4 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
+		69F4EF9847554B088E6A2F3D /* MCPServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MCPServer.swift; sourceTree = "<group>"; };
 		AE7C328DDCCE47BB83715A4F /* Bridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Bridge.swift; sourceTree = "<group>"; };
 		286D015C3071876D00B0D2D0 /* Base */ = {isa = PBXFileReference; lastKnownFileType = text.html; name = Base; path = Base.lproj/Main.html; sourceTree = "<group>"; };
 		286D015E3071876D00B0D2D0 /* Icon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Icon.png; sourceTree = "<group>"; };
@@ -62,7 +66,7 @@
 		286D01673071876D00B0D2D0 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		286D01693071876E00B0D2D0 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		286D016B3071876E00B0D2D0 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		286D01703071876E00B0D2D0 /* Claude Code for Safari Extension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "Claude Code for Safari Extension.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
+		286D01703071876E00B0D2D0 /* Agent Bridge for Safari Extension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "Agent Bridge for Safari Extension.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
 		286D01753071876E00B0D2D0 /* SafariWebExtensionHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SafariWebExtensionHandler.swift; sourceTree = "<group>"; };
 		286D01773071876E00B0D2D0 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		286D01823071876E00B0D2D0 /* background.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = background.js; path = ../../../extension/background.js; sourceTree = "<group>"; };
@@ -90,8 +94,8 @@
 		286D014C3071876D00B0D2D0 = {
 			isa = PBXGroup;
 			children = (
-				286D01573071876D00B0D2D0 /* Claude Code for Safari */,
-				286D01743071876E00B0D2D0 /* Claude Code for Safari Extension */,
+				286D01573071876D00B0D2D0 /* Agent Bridge for Safari */,
+				286D01743071876E00B0D2D0 /* Agent Bridge for Safari Extension */,
 				286D01563071876D00B0D2D0 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -99,16 +103,18 @@
 		286D01563071876D00B0D2D0 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				286D01553071876D00B0D2D0 /* Claude Code for Safari.app */,
-				286D01703071876E00B0D2D0 /* Claude Code for Safari Extension.appex */,
+				286D01553071876D00B0D2D0 /* Agent Bridge for Safari.app */,
+				286D01703071876E00B0D2D0 /* Agent Bridge for Safari Extension.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
 		};
-		286D01573071876D00B0D2D0 /* Claude Code for Safari */ = {
+		286D01573071876D00B0D2D0 /* Agent Bridge for Safari */ = {
 			isa = PBXGroup;
 			children = (
 				286D01583071876D00B0D2D0 /* AppDelegate.swift */,
+				9CB481168DE44B78BC8681B4 /* main.swift */,
+				69F4EF9847554B088E6A2F3D /* MCPServer.swift */,
 				AE7C328DDCCE47BB83715A4F /* Bridge.swift */,
 				286D01643071876D00B0D2D0 /* ViewController.swift */,
 				286D01663071876D00B0D2D0 /* Main.storyboard */,
@@ -116,7 +122,7 @@
 				286D016B3071876E00B0D2D0 /* Info.plist */,
 				286D015A3071876D00B0D2D0 /* Resources */,
 			);
-			path = "Claude Code for Safari";
+			path = "Agent Bridge for Safari";
 			sourceTree = "<group>";
 		};
 		286D015A3071876D00B0D2D0 /* Resources */ = {
@@ -131,14 +137,14 @@
 			path = Resources;
 			sourceTree = "<group>";
 		};
-		286D01743071876E00B0D2D0 /* Claude Code for Safari Extension */ = {
+		286D01743071876E00B0D2D0 /* Agent Bridge for Safari Extension */ = {
 			isa = PBXGroup;
 			children = (
 				286D01813071876E00B0D2D0 /* Resources */,
 				286D01753071876E00B0D2D0 /* SafariWebExtensionHandler.swift */,
 				286D01773071876E00B0D2D0 /* Info.plist */,
 			);
-			path = "Claude Code for Safari Extension";
+			path = "Agent Bridge for Safari Extension";
 			sourceTree = "<group>";
 		};
 		286D01813071876E00B0D2D0 /* Resources */ = {
@@ -152,15 +158,15 @@
 				286D01863071876E00B0D2D0 /* content.js */,
 			);
 			name = Resources;
-			path = "Claude Code for Safari Extension";
+			path = "Agent Bridge for Safari Extension";
 			sourceTree = SOURCE_ROOT;
 		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		286D01543071876D00B0D2D0 /* Claude Code for Safari */ = {
+		286D01543071876D00B0D2D0 /* Agent Bridge for Safari */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 286D017E3071876E00B0D2D0 /* Build configuration list for PBXNativeTarget "Claude Code for Safari" */;
+			buildConfigurationList = 286D017E3071876E00B0D2D0 /* Build configuration list for PBXNativeTarget "Agent Bridge for Safari" */;
 			buildPhases = (
 				286D01513071876D00B0D2D0 /* Sources */,
 				286D01523071876D00B0D2D0 /* Frameworks */,
@@ -172,14 +178,14 @@
 			dependencies = (
 				286D01733071876E00B0D2D0 /* PBXTargetDependency */,
 			);
-			name = "Claude Code for Safari";
-			productName = "Claude Code for Safari";
-			productReference = 286D01553071876D00B0D2D0 /* Claude Code for Safari.app */;
+			name = "Agent Bridge for Safari";
+			productName = "Agent Bridge for Safari";
+			productReference = 286D01553071876D00B0D2D0 /* Agent Bridge for Safari.app */;
 			productType = "com.apple.product-type.application";
 		};
-		286D016F3071876E00B0D2D0 /* Claude Code for Safari Extension */ = {
+		286D016F3071876E00B0D2D0 /* Agent Bridge for Safari Extension */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 286D017A3071876E00B0D2D0 /* Build configuration list for PBXNativeTarget "Claude Code for Safari Extension" */;
+			buildConfigurationList = 286D017A3071876E00B0D2D0 /* Build configuration list for PBXNativeTarget "Agent Bridge for Safari Extension" */;
 			buildPhases = (
 				286D016C3071876E00B0D2D0 /* Sources */,
 				286D016D3071876E00B0D2D0 /* Frameworks */,
@@ -187,9 +193,9 @@
 			);
 			buildRules = (
 			);
-			name = "Claude Code for Safari Extension";
-			productName = "Claude Code for Safari Extension";
-			productReference = 286D01703071876E00B0D2D0 /* Claude Code for Safari Extension.appex */;
+			name = "Agent Bridge for Safari Extension";
+			productName = "Agent Bridge for Safari Extension";
+			productReference = 286D01703071876E00B0D2D0 /* Agent Bridge for Safari Extension.appex */;
 			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
@@ -210,7 +216,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 286D01503071876D00B0D2D0 /* Build configuration list for PBXProject "Claude Code for Safari" */;
+			buildConfigurationList = 286D01503071876D00B0D2D0 /* Build configuration list for PBXProject "Agent Bridge for Safari" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -224,8 +230,8 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				286D01543071876D00B0D2D0 /* Claude Code for Safari */,
-				286D016F3071876E00B0D2D0 /* Claude Code for Safari Extension */,
+				286D01543071876D00B0D2D0 /* Agent Bridge for Safari */,
+				286D016F3071876E00B0D2D0 /* Agent Bridge for Safari Extension */,
 			);
 		};
 /* End PBXProject section */
@@ -262,6 +268,8 @@
 			files = (
 				286D01653071876D00B0D2D0 /* ViewController.swift in Sources */,
 				286D01593071876D00B0D2D0 /* AppDelegate.swift in Sources */,
+				9A64FAB51984495C8B74E42E /* main.swift in Sources */,
+				52CB9D670BB44811A9A75FBE /* MCPServer.swift in Sources */,
 				94B8D5B60B0F4A429EB5C754 /* Bridge.swift in Sources */,
 			);
 		};
@@ -276,7 +284,7 @@
 /* Begin PBXTargetDependency section */
 		286D01733071876E00B0D2D0 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 286D016F3071876E00B0D2D0 /* Claude Code for Safari Extension */;
+			target = 286D016F3071876E00B0D2D0 /* Agent Bridge for Safari Extension */;
 			targetProxy = 286D01723071876E00B0D2D0 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
@@ -301,7 +309,7 @@
 /* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
-		286D01783071876E00B0D2D0 /* Debug configuration for PBXProject "Claude Code for Safari" */ = {
+		286D01783071876E00B0D2D0 /* Debug configuration for PBXProject "Agent Bridge for Safari" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -364,7 +372,7 @@
 			};
 			name = Debug;
 		};
-		286D01793071876E00B0D2D0 /* Release configuration for PBXProject "Claude Code for Safari" */ = {
+		286D01793071876E00B0D2D0 /* Release configuration for PBXProject "Agent Bridge for Safari" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -419,7 +427,7 @@
 			};
 			name = Release;
 		};
-		286D017B3071876E00B0D2D0 /* Debug configuration for PBXNativeTarget "Claude Code for Safari Extension" */ = {
+		286D017B3071876E00B0D2D0 /* Debug configuration for PBXNativeTarget "Agent Bridge for Safari Extension" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
@@ -430,8 +438,8 @@
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = "Claude Code for Safari Extension/Info.plist";
-				INFOPLIST_KEY_CFBundleDisplayName = "Claude Code for Safari Extension";
+				INFOPLIST_FILE = "Agent Bridge for Safari Extension/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "Agent Bridge for Safari Extension";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -444,7 +452,7 @@
 					"-framework",
 					SafariServices,
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "com.michaelhelms.claude-code-safari.Extension";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.michaelhelms.agent-bridge-safari.Extension";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -455,7 +463,7 @@
 			};
 			name = Debug;
 		};
-		286D017C3071876E00B0D2D0 /* Release configuration for PBXNativeTarget "Claude Code for Safari Extension" */ = {
+		286D017C3071876E00B0D2D0 /* Release configuration for PBXNativeTarget "Agent Bridge for Safari Extension" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
@@ -466,8 +474,8 @@
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = "Claude Code for Safari Extension/Info.plist";
-				INFOPLIST_KEY_CFBundleDisplayName = "Claude Code for Safari Extension";
+				INFOPLIST_FILE = "Agent Bridge for Safari Extension/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "Agent Bridge for Safari Extension";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -480,7 +488,7 @@
 					"-framework",
 					SafariServices,
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "com.michaelhelms.claude-code-safari.Extension";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.michaelhelms.agent-bridge-safari.Extension";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -491,7 +499,7 @@
 			};
 			name = Release;
 		};
-		286D017F3071876E00B0D2D0 /* Debug configuration for PBXNativeTarget "Claude Code for Safari" */ = {
+		286D017F3071876E00B0D2D0 /* Debug configuration for PBXNativeTarget "Agent Bridge for Safari" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
@@ -506,8 +514,8 @@
 				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = "Claude Code for Safari/Info.plist";
-				INFOPLIST_KEY_CFBundleDisplayName = "Claude Code for Safari";
+				INFOPLIST_FILE = "Agent Bridge for Safari/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "Agent Bridge for Safari";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				INFOPLIST_KEY_NSMainStoryboardFile = Main;
 				INFOPLIST_KEY_NSPrincipalClass = NSApplication;
@@ -523,7 +531,7 @@
 					"-framework",
 					WebKit,
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "com.michaelhelms.claude-code-safari";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.michaelhelms.agent-bridge-safari";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -535,7 +543,7 @@
 			};
 			name = Debug;
 		};
-		286D01803071876E00B0D2D0 /* Release configuration for PBXNativeTarget "Claude Code for Safari" */ = {
+		286D01803071876E00B0D2D0 /* Release configuration for PBXNativeTarget "Agent Bridge for Safari" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
@@ -550,8 +558,8 @@
 				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = "Claude Code for Safari/Info.plist";
-				INFOPLIST_KEY_CFBundleDisplayName = "Claude Code for Safari";
+				INFOPLIST_FILE = "Agent Bridge for Safari/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "Agent Bridge for Safari";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				INFOPLIST_KEY_NSMainStoryboardFile = Main;
 				INFOPLIST_KEY_NSPrincipalClass = NSApplication;
@@ -567,7 +575,7 @@
 					"-framework",
 					WebKit,
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "com.michaelhelms.claude-code-safari";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.michaelhelms.agent-bridge-safari";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -582,27 +590,27 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		286D01503071876D00B0D2D0 /* Build configuration list for PBXProject "Claude Code for Safari" */ = {
+		286D01503071876D00B0D2D0 /* Build configuration list for PBXProject "Agent Bridge for Safari" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				286D01783071876E00B0D2D0 /* Debug configuration for PBXProject "Claude Code for Safari" */,
-				286D01793071876E00B0D2D0 /* Release configuration for PBXProject "Claude Code for Safari" */,
+				286D01783071876E00B0D2D0 /* Debug configuration for PBXProject "Agent Bridge for Safari" */,
+				286D01793071876E00B0D2D0 /* Release configuration for PBXProject "Agent Bridge for Safari" */,
 			);
 			defaultConfigurationName = Release;
 		};
-		286D017A3071876E00B0D2D0 /* Build configuration list for PBXNativeTarget "Claude Code for Safari Extension" */ = {
+		286D017A3071876E00B0D2D0 /* Build configuration list for PBXNativeTarget "Agent Bridge for Safari Extension" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				286D017B3071876E00B0D2D0 /* Debug configuration for PBXNativeTarget "Claude Code for Safari Extension" */,
-				286D017C3071876E00B0D2D0 /* Release configuration for PBXNativeTarget "Claude Code for Safari Extension" */,
+				286D017B3071876E00B0D2D0 /* Debug configuration for PBXNativeTarget "Agent Bridge for Safari Extension" */,
+				286D017C3071876E00B0D2D0 /* Release configuration for PBXNativeTarget "Agent Bridge for Safari Extension" */,
 			);
 			defaultConfigurationName = Release;
 		};
-		286D017E3071876E00B0D2D0 /* Build configuration list for PBXNativeTarget "Claude Code for Safari" */ = {
+		286D017E3071876E00B0D2D0 /* Build configuration list for PBXNativeTarget "Agent Bridge for Safari" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				286D017F3071876E00B0D2D0 /* Debug configuration for PBXNativeTarget "Claude Code for Safari" */,
-				286D01803071876E00B0D2D0 /* Release configuration for PBXNativeTarget "Claude Code for Safari" */,
+				286D017F3071876E00B0D2D0 /* Debug configuration for PBXNativeTarget "Agent Bridge for Safari" */,
+				286D01803071876E00B0D2D0 /* Release configuration for PBXNativeTarget "Agent Bridge for Safari" */,
 			);
 			defaultConfigurationName = Release;
 		};

@@ -1,6 +1,6 @@
 //
 //  SafariWebExtensionHandler.swift
-//  Claude Code for Safari Extension
+//  Agent Bridge for Safari Extension
 //
 //  Created by Michael's Macbook Pro on 10/3/26.
 //

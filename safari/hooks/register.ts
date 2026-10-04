@@ -38,7 +38,7 @@ type Geometry = { innerWidth: number; innerHeight: number; outerWidth: number; o
 const SETUP = [
   'To connect the Safari extension:',
   '1. Open the built app once: the mod can do this with /safari install.',
-  '2. Safari > Settings > Extensions > turn on "Claude Code for Safari" and allow it on every website.',
+  '2. Safari > Settings > Extensions > turn on "Agent Bridge for Safari" and allow it on every website.',
   '3. If the app was not signed with your Apple ID, also tick Develop > "Allow unsigned extensions" (resets when Safari restarts).',
   'Until then the AppleScript fallback is used, which needs Develop > "Allow JavaScript from Apple Events".',
 ].join('\n')
@@ -398,7 +398,7 @@ function mimeOf(p: string): string {
 async function statusText(io: Io): Promise<string> {
   const s = await bridgeStatus(io)
   const lines = [
-    `Bridge: ${s.running ? `running in the ${s.host === 'app' ? 'Claude Code for Safari app' : 'Node fallback'} (pid ${s.pid})` : 'not running'}`,
+    `Bridge: ${s.running ? `running in the ${s.host === 'app' ? 'Agent Bridge for Safari app' : 'Node fallback'} (pid ${s.pid})` : 'not running'}`,
     `Extension: ${s.connected ? `connected (v${s.extensionVersion ?? '?'})` : 'not connected'}`,
     `Transport in use: ${s.connected ? 'Safari extension' : 'AppleScript fallback'}`,
   ]
@@ -419,13 +419,13 @@ export const register: Register = on => {
     const io = makeIo($)
     const arg = String((e as { args?: string }).args ?? '').trim()
     if (arg === 'install' || arg === 'open') {
-      let r = await io.run(['open', '-b', 'com.michaelhelms.claude-code-safari'], { timeoutMs: 15_000 })
+      let r = await io.run(['open', '-b', 'com.michaelhelms.agent-bridge-safari'], { timeoutMs: 15_000 })
       if (r.exitCode !== 0) {
-        const app = `${io.pluginRoot}/app/Claude Code for Safari.app`
+        const app = `${io.pluginRoot}/app/Agent Bridge for Safari.app`
         r = await io.run(['open', app], { timeoutMs: 15_000 })
-        if (r.exitCode !== 0) return { text: `"Claude Code for Safari" is not installed. Download it, or build it with: cd "${io.pluginRoot}" && ./scripts/build-extension.sh` }
+        if (r.exitCode !== 0) return { text: `"Agent Bridge for Safari" is not installed. Download it, or build it with: cd "${io.pluginRoot}" && ./scripts/build-extension.sh` }
       }
-      return { text: `Opened "Claude Code for Safari". Now in Safari: Settings > Extensions > turn on "Claude Code for Safari" and allow it on every website.\n\n${await statusText(io)}` }
+      return { text: `Opened "Agent Bridge for Safari". Now in Safari: Settings > Extensions > turn on "Agent Bridge for Safari" and allow it on every website.\n\n${await statusText(io)}` }
     }
     if (arg === 'start' || arg === 'reconnect') {
       const s = await ensureBridge(io)

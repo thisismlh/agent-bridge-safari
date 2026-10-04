@@ -1,15 +1,15 @@
 # App Store / download listing
 
-**Name:** Claude Code for Safari
+**Name:** Agent Bridge for Safari
 **Subtitle:** Let Claude Code drive your Safari tabs
 **Category:** Developer Tools
 **Price:** Free
-**Privacy policy URL:** https://github.com/thisismlh/claude-code-safari/blob/main/docs/site/privacy.md
-**Support URL:** https://github.com/thisismlh/claude-code-safari/blob/main/docs/site/support.md
+**Privacy policy URL:** https://github.com/thisismlh/agent-bridge-safari/blob/main/docs/site/privacy.md
+**Support URL:** https://github.com/thisismlh/agent-bridge-safari/blob/main/docs/site/support.md
 
 ## Description
 
-Claude Code for Safari connects Claude Code to Safari on your Mac, so Claude can test
+Agent Bridge for Safari connects Claude Code to Safari on your Mac, so Claude can test
 your web app, fill in forms, read console errors, and pull data from pages, all in the
 browser you already use and are already signed in to.
 
@@ -26,8 +26,8 @@ the Safari extension and Claude Code can reach. No accounts, no servers, no anal
 
 Requires Claude Code and the free `safari` plugin:
 
-    /plugin marketplace add thisismlh/claude-code-safari
-    /plugin install safari@claude-code-safari
+    /plugin marketplace add thisismlh/agent-bridge-safari
+    /plugin install safari@agent-bridge-safari
 
 ## Keywords
 

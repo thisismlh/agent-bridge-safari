@@ -1,12 +1,11 @@
 //  AppDelegate.swift
-//  Claude Code for Safari: hosts the bridge, keeps running in the background, and
+//  Agent Bridge for Safari: hosts the bridge, keeps running in the background, and
 //  shows status in a window and a menu bar item.
 
 import Cocoa
 import SafariServices
 import ServiceManagement
 
-@main
 class AppDelegate: NSObject, NSApplicationDelegate {
     private var statusItem: NSStatusItem?
     private var refresh: Timer?
@@ -14,7 +13,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         Bridge.shared.start()
         let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
-        item.button?.image = NSImage(systemSymbolName: "safari", accessibilityDescription: "Claude Code for Safari")
+        item.button?.image = NSImage(systemSymbolName: "safari", accessibilityDescription: "Agent Bridge for Safari")
         item.menu = buildMenu()
         statusItem = item
         refresh = Timer.scheduledTimer(withTimeInterval: 2, repeats: true) { [weak self] _ in self?.statusItem?.menu = self?.buildMenu() }
@@ -24,9 +23,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool { false }
 
-    /// claudesafari://pair?token=<hex> from a Claude Code session.
+    /// agentbridge://pair?token=<hex> from a Claude Code session.
     func application(_ application: NSApplication, open urls: [URL]) {
-        for url in urls where url.scheme == "claudesafari" && url.host == "pair" {
+        for url in urls where url.scheme == "agentbridge" && url.host == "pair" {
             let items = URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems ?? []
             if let t = items.first(where: { $0.name == "token" })?.value { Bridge.shared.pair(token: t) }
         }
@@ -48,7 +47,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         menu.addItem(withTitle: "Open Safari Extension Settings…", action: #selector(openSafariSettings), keyEquivalent: "")
         menu.addItem(withTitle: "Show Status Window", action: #selector(showWindowAction), keyEquivalent: "")
         menu.addItem(.separator())
-        menu.addItem(withTitle: "Quit Claude Code for Safari", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
+        menu.addItem(withTitle: "Quit Agent Bridge for Safari", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
         return menu
     }
 

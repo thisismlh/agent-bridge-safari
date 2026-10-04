@@ -13,7 +13,7 @@ let bridgeStarted = false
 let nodeBinary: string | null = null
 export let lastStartError: string | null = null
 
-export const APP_BUNDLE_ID = 'com.michaelhelms.claude-code-safari'
+export const APP_BUNDLE_ID = 'com.michaelhelms.agent-bridge-safari'
 
 /** Where the bridge is: the app's loopback port with its token, or the Node bridge's socket. */
 export type AppTarget = { kind: 'app'; url: string; token: string }
@@ -25,7 +25,7 @@ export async function bridgeSocket(io: Io): Promise<string> {
 }
 
 // The app is sandboxed and macOS keeps other processes out of its container, so the mod
-// hands the app a token of its own through the claudesafari:// URL scheme and finds the
+// hands the app a token of its own through the agentbridge:// URL scheme and finds the
 // port by scanning a short range for the X-Claude-Bridge header.
 export const APP_PORTS = Array.from({ length: 10 }, (_, i) => 47831 + i)
 let sessionToken: string | null = null
@@ -35,7 +35,7 @@ function pairingToken(): string {
 }
 
 async function pairWithApp(io: Io): Promise<void> {
-  await io.run(['open', '-g', `claudesafari://pair?token=${pairingToken()}`], { timeoutMs: 15_000 })
+  await io.run(['open', '-g', `agentbridge://pair?token=${pairingToken()}`], { timeoutMs: 15_000 })
 }
 
 /** Scans the port range for an app bridge that accepts this session's token (pairing once if it refuses). */

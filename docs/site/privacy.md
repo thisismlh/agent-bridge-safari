@@ -1,8 +1,8 @@
-# Privacy Policy — Claude Code for Safari
+# Privacy Policy — Agent Bridge for Safari
 
 Last updated: 2026-10-04
 
-Claude Code for Safari is a Mac app and Safari extension that lets Claude Code, running
+Agent Bridge for Safari is a Mac app and Safari extension that lets Claude Code, running
 on the same Mac, read and control Safari tabs when you ask it to.
 
 ## What the app does with data
@@ -28,4 +28,4 @@ Extensions, and turn the extension off there at any time.
 
 ## Contact
 
-Questions: open an issue at https://github.com/thisismlh/claude-code-safari/issues.
+Questions: open an issue at https://github.com/thisismlh/agent-bridge-safari/issues.

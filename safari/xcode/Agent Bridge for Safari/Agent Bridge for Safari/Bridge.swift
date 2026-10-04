@@ -176,7 +176,7 @@ final class Bridge {
     private var server: HTTPServer?
     private(set) var port: UInt16 = 0
     private(set) var token = ""           // the app's own token, written to the discovery file
-    private var pairedTokens: [String] = []    // tokens handed over by Claude Code sessions via claudesafari://pair
+    private var pairedTokens: [String] = []    // tokens handed over by Claude Code sessions via agentbridge://pair
     private var queue: [Command] = []
     private var waiters: [Waiter] = []
     private var instances: [String: Instance] = [:]
@@ -191,7 +191,7 @@ final class Bridge {
     private let pickupWindow: TimeInterval = 8
 
     var discoveryURL: URL {
-        let dir = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0].appendingPathComponent("Claude Code for Safari", isDirectory: true)
+        let dir = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0].appendingPathComponent("Agent Bridge for Safari", isDirectory: true)
         return dir.appendingPathComponent("bridge.json")
     }
 
@@ -258,7 +258,7 @@ final class Bridge {
         let t = String(auth.dropFirst(7))
         return (!token.isEmpty && t == token) || pairedTokens.contains(t)
     }
-    /// A Claude Code session pairs by opening claudesafari://pair?token=<hex>. Several sessions may
+    /// A Claude Code session pairs by opening agentbridge://pair?token=<hex>. Several sessions may
     /// be paired at once; the list is bounded so a flood cannot grow it without limit.
     func pair(token t: String) {
         guard t.count >= 32, t.count <= 128, t.allSatisfy({ $0.isHexDigit }) else { return }

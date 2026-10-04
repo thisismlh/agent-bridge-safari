@@ -1,14 +1,14 @@
-# Support — Claude Code for Safari
+# Support — Agent Bridge for Safari
 
 ## Setup
 
-1. Open Claude Code for Safari.app. Click "Open Safari Extension Settings…", turn on the
+1. Open Agent Bridge for Safari.app. Click "Open Safari Extension Settings…", turn on the
    extension, and allow it on every website.
 2. In Claude Code run:
 
    ```
-   /plugin marketplace add thisismlh/claude-code-safari
-   /plugin install safari@claude-code-safari
+   /plugin marketplace add thisismlh/agent-bridge-safari
+   /plugin install safari@agent-bridge-safari
    ```
 
 3. Run `/safari`. It should say the bridge is running in the app and the extension is
@@ -39,4 +39,4 @@ item, and move the app to the Trash. In Claude Code, run `/plugin uninstall safa
 
 ## Contact
 
-https://github.com/thisismlh/claude-code-safari/issues
+https://github.com/thisismlh/agent-bridge-safari/issues
