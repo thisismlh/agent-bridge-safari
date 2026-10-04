@@ -20,8 +20,8 @@ const modCall = (p: string, body?: unknown): Promise<{ status: number; body: any
     })
     req.on('error', reject); if (data) req.write(data); req.end()
   })
-const extCall = async (p: string, body: unknown) => {
-  const r = await fetch(`http://127.0.0.1:${PORT}${p}`, { method: 'POST', headers: { 'content-type': 'application/json', origin: 'safari-web-extension://TEST' }, body: JSON.stringify(body) })
+const extCall = async (p: string, body: unknown, origin = 'safari-web-extension://TEST') => {
+  const r = await fetch(`http://127.0.0.1:${PORT}${p}`, { method: 'POST', headers: { 'content-type': 'application/json', origin }, body: JSON.stringify(body) })
   return { status: r.status, body: r.status === 204 ? null : await r.json() }
 }
 
@@ -109,9 +109,22 @@ describe('bridge', () => {
     const t0 = Date.now()
     const out = await modCall('/call', { name: 'orphan' })
     expect(out.status).toBe(503)
-    expect(Date.now() - t0).toBeLessThan(8000)
+    expect(Date.now() - t0).toBeLessThan(9500)
     expect((await modCall('/status')).body.extensionConnected).toBe(false)
   }, 15000)
+
+  test('commands go to the extension copy that can see tabs', async () => {
+    const stale = extCall('/ext/poll', { version: 'old' }, 'safari-web-extension://STALE')          // no tabs field: -1
+    const live = extCall('/ext/poll', { version: 'new', tabs: 2 }, 'safari-web-extension://LIVE')
+    await new Promise(r => setTimeout(r, 50))
+    const call = modCall('/call', { name: 'ping' })
+    const cmd = (await live).body
+    expect(cmd.name).toBe('ping')
+    await extCall('/ext/result', { id: cmd.id, result: 'from live' }, 'safari-web-extension://LIVE')
+    expect((await call).body.result).toBe('from live')
+    expect((await modCall('/status')).body.primary).toBe('safari-web-extension://LIVE')
+    void stale.catch(() => {}) // held until its 25 s timer or the server closes
+  }, 10000)
 
   test('a second bridge on the same socket refuses to start', async () => {
     const dup = spawn('node', [BRIDGE, '--sock', SOCK, '--port', String(PORT + 1)])

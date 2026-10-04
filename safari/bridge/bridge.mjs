@@ -18,7 +18,8 @@ const POLL_HOLD_MS = 25_000
 const CONNECTED_WINDOW_MS = 40_000
 
 const queue = []            // commands waiting for the extension
-const waiters = []          // extension polls waiting for a command: { res, timer }
+const waiters = []          // extension polls waiting for a command: { res, timer, origin }
+const instances = new Map() // origin -> { lastSeen, tabs, version }: several copies of the extension may run
 const pending = new Map()   // id -> { resolve, timer }
 let lastSeen = 0
 let extensionVersion = null
@@ -39,11 +40,23 @@ const readBody = req => new Promise((resolve, reject) => {
 })
 const isConnected = () => Date.now() - lastSeen < CONNECTED_WINDOW_MS
 
+// Safari can keep stale copies of the extension alive after a rebuild, each polling here.
+// Commands go to the copy that can see tabs; ties go to the most recently seen one.
+function primaryOrigin() {
+  let best = null
+  for (const [origin, i] of instances) {
+    if (Date.now() - i.lastSeen > CONNECTED_WINDOW_MS) continue
+    if (!best || i.tabs > best.tabs || (i.tabs === best.tabs && i.lastSeen > best.lastSeen)) best = { origin, ...i }
+  }
+  return best ? best.origin : null
+}
 function dispatch() {
-  while (queue.length && waiters.length) {
-    const w = waiters.shift()
+  const primary = primaryOrigin()
+  while (queue.length) {
+    const idx = waiters.findIndex(w => w.origin === primary && !w.res.destroyed && !w.res.writableEnded)
+    if (idx < 0) return
+    const w = waiters.splice(idx, 1)[0]
     clearTimeout(w.timer)
-    if (w.res.destroyed || w.res.writableEnded) continue
     const cmd = queue.shift()
     try { json(w.res, 200, cmd) } catch { queue.unshift(cmd) }
   }
@@ -53,7 +66,7 @@ function dispatch() {
 const modServer = http.createServer(async (req, res) => {
   try {
     if (req.method === 'GET' && req.url === '/status') {
-      return json(res, 200, { ok: true, pid: process.pid, extensionConnected: isConnected(), lastSeen, extensionVersion, lastOrigin, lastContentType, queued: queue.length, pending: pending.size, port: PORT })
+      return json(res, 200, { ok: true, pid: process.pid, extensionConnected: isConnected(), lastSeen, extensionVersion, primary: primaryOrigin(), instances: Object.fromEntries(instances), lastOrigin, lastContentType, queued: queue.length, pending: pending.size, port: PORT })
     }
     if (req.method === 'POST' && req.url === '/call') {
       const body = await readBody(req)
@@ -100,12 +113,14 @@ const extServer = http.createServer(async (req, res) => {
     if (req.url === '/ext/poll') {
       const body = await readBody(req)
       lastSeen = Date.now()
-      if (body.version) extensionVersion = body.version
-      if (queue.length) { const cmd = queue.shift(); return json(res, 200, cmd) }
-      const w = { res, timer: null }
+      const origin = String(req.headers.origin || '')
+      instances.set(origin, { lastSeen, tabs: typeof body.tabs === 'number' ? body.tabs : -1, version: body.version || null })
+      if (body.version && origin === primaryOrigin()) extensionVersion = body.version
+      const w = { res, timer: null, origin }
       w.timer = setTimeout(() => { const i = waiters.indexOf(w); if (i >= 0) waiters.splice(i, 1); res.writeHead(204); res.end() }, POLL_HOLD_MS)
       req.on('close', () => { clearTimeout(w.timer); const i = waiters.indexOf(w); if (i >= 0) waiters.splice(i, 1) })
       waiters.push(w)
+      dispatch()
       return
     }
     if (req.url === '/ext/result') {

@@ -2,7 +2,7 @@
 // Safari's tabs, and keeps per-tab console and network buffers.
 
 var BRIDGE = 'http://127.0.0.1:47831';
-var VERSION = '0.3.0';
+var VERSION = '0.4.0';
 var RING = 500;
 
 var consoleLogs = new Map();
@@ -43,12 +43,22 @@ browser.webNavigation.onBeforeNavigate.addListener(function (d) {
   if (d.frameId === 0) { consoleLogs.delete(d.tabId); networkLogs.delete(d.tabId); navigating.set(d.tabId, Date.now()); }
 });
 
+// Safari occasionally answers an empty list right after a window change; ask again briefly.
+async function allTabs() {
+  for (var attempt = 0; attempt < 3; attempt++) {
+    var tabs = await browser.tabs.query({});
+    if (tabs.length) return tabs;
+    await sleep(120);
+  }
+  return [];
+}
 async function tabOrActive(tabId) {
   if (tabId !== undefined && tabId !== null && tabId !== '') {
     try { return await browser.tabs.get(Number(tabId)); } catch (e) { throw new Error('No tab ' + tabId + '. Call tabs_context for current tab ids.'); }
   }
   var tabs = await browser.tabs.query({ active: true, lastFocusedWindow: true });
   if (!tabs.length) tabs = await browser.tabs.query({ active: true });
+  if (!tabs.length) tabs = await allTabs();
   if (!tabs.length) throw new Error('Safari has no tabs open. Use tabs_create or navigate.');
   return tabs[0];
 }
@@ -108,11 +118,11 @@ async function scaleImage(dataUrl, width, height) {
 
 var handlers = {
   ping: async function () {
-    var tabs = await browser.tabs.query({});
+    var tabs = await allTabs();
     return { version: VERSION, tabs: tabs.length };
   },
   'tabs.list': async function () {
-    var tabs = await browser.tabs.query({});
+    var tabs = await allTabs();
     return tabs.map(function (t) { return { tabId: t.id, windowId: t.windowId, index: t.index, url: t.url || '', title: t.title || '', active: !!t.active }; });
   },
   'tabs.create': async function (p) {
@@ -192,7 +202,8 @@ async function post(path, body) {
 async function loop() {
   for (;;) {
     try {
-      var r = await fetch(BRIDGE + '/ext/poll', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ version: VERSION }) });
+      var count = 0; try { count = (await browser.tabs.query({})).length; } catch (e) {}
+      var r = await fetch(BRIDGE + '/ext/poll', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ version: VERSION, tabs: count }) });
       if (r.status === 204) continue;
       if (!r.ok) { await sleep(1000); continue; }
       var cmd = await r.json();
