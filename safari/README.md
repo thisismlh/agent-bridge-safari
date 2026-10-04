@@ -11,9 +11,11 @@ signing, no extension install.
 ## Two transports
 
 1. **Safari extension** (preferred). A Safari Web Extension in `extension/` talks to
-   the mod through a local bridge daemon (`bridge/bridge.mjs`). Gives page access,
-   screenshots, console and network capture, file uploads and stable tab ids with no
-   macOS permissions.
+   the mod through a local bridge. In production the bridge is hosted by the container
+   app (`xcode/.../Bridge.swift`, Swift, sandboxed, token-gated); the Node bridge
+   (`bridge/bridge.mjs`) is the same protocol for tests and for running the extension
+   unpacked. Gives page access, screenshots, console and network capture, file uploads
+   and stable tab ids with no macOS permissions.
 2. **AppleScript fallback**. Used automatically when the extension is not connected.
    Needs Safari's Develop > "Allow JavaScript from Apple Events", and Screen Recording
    for screenshots.
@@ -38,7 +40,9 @@ pins one copy (the one that can reach the current page) and switches only when i
 dies. After a reload, call `tabs_context` again before reusing a tab id. `/safari`
 shows the extension version the bridge sees.
 
-`/safari` shows bridge and extension status. Real keyboard shortcuts through
+`/safari` shows bridge and extension status, including whether the app or the Node
+fallback is hosting the bridge. Claude Code launches the app hidden when it is not
+running and pairs with it over `claudesafari://pair?token=…`. Real keyboard shortcuts through
 `press_key` (anything other than Enter, Tab, Escape) still need Accessibility
 permission for the app running Claude Code.
 

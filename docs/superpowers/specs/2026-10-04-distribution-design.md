@@ -16,13 +16,14 @@ Swift over POSIX sockets with GCD, two listeners on 127.0.0.1:
 - Claude Code side: `POST /call`, `GET /status`, guarded by `Authorization: Bearer <token>`
   and `Content-Type: application/json`.
 
-The App Sandbox cannot write `~/.claude`, so the Unix socket goes away. Instead the app
-writes a discovery file in its own container:
-`~/Library/Containers/com.michaelhelms.claude-code-safari/Data/Library/Application Support/bridge.json`
-with `{ "port", "token", "pid", "version" }`. The mod reads it (the mod is not sandboxed),
-and the extension asks the app's native messaging handler for the port with
-`browser.runtime.sendNativeMessage`, falling back to 47831. The port is 47831 when free,
-otherwise the next free one.
+The App Sandbox cannot write `~/.claude`, and macOS keeps other processes out of a
+sandboxed app's container, so neither a Unix socket nor a discovery file works for the
+hand-off. Instead each Claude Code session generates a token and hands it to the app by
+opening `claudesafari://pair?token=<hex>` (a URL scheme the app registers; the app keeps
+the last 32 paired tokens). The mod finds the port by scanning 47831 to 47840 for a
+`/status` answer carrying the `X-Claude-Bridge: 1` header, pairing when it gets 403.
+The extension polls the same range. The app still writes `bridge.json` in its container
+for debugging. The port is 47831 when free, otherwise the next free one.
 
 Instance tracking, sticky primary by reach/tabs/recency, pickup timeout, random ids and
 timed-out command removal are ported unchanged. The Node bridge stays for tests and for
@@ -30,9 +31,10 @@ running the extension unpacked without the app; the mod prefers the app.
 
 ## Mod changes
 
-`ensureBridge` order: discovery file reachable → use it; else launch the app by bundle id
-(`open -g -b com.michaelhelms.claude-code-safari`) and wait up to 5 s; else the Node
-bridge if node or bun exists; else AppleScript fallback. `/safari` reports which bridge
+`ensureBridge` order: an app bridge answering on the port range → use it; else launch
+the app hidden by bundle id (`open -g -b com.michaelhelms.claude-code-safari --args
+--background`), pair, and wait up to 5 s; else the Node bridge if node or bun exists;
+else AppleScript fallback. `/safari` reports which bridge
 answered. `/safari install` opens the app, which opens Safari's extension settings.
 
 ## App UI
@@ -45,8 +47,8 @@ status. The app keeps running in the background when its window closes.
 
 ## Entitlements and review readiness
 
-App: App Sandbox, network client and server. Extension: App Sandbox, network client.
-Both: hardened runtime. `PrivacyInfo.xcprivacy` declaring no tracking and no required
+App: App Sandbox, network client and server (set through the target's build settings).
+Extension: App Sandbox, network client. Both: hardened runtime. `PrivacyInfo.xcprivacy` declaring no tracking and no required
 reason APIs beyond file timestamps. `scripts/build-extension.sh` gains a `release` mode
 that archives, signs with Developer ID when available, and prints the notarization
 commands.
