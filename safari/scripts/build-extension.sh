@@ -4,7 +4,13 @@
 set -e
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT/xcode/Claude Code for Safari"
+# Default to the Apple Development team Xcode knows when no TEAM is given, so a signed
+# build never silently turns into an ad-hoc one (Safari drops unsigned extensions).
+if [ -z "$TEAM" ]; then
+  TEAM=$(defaults read com.apple.dt.Xcode IDEProvisioningTeamByIdentifier 2>/dev/null | grep -o 'teamID = [A-Z0-9]*' | head -1 | awk '{print $3}')
+fi
 if [ -n "$TEAM" ]; then
+  echo "Signing with team $TEAM"
   SIGN="CODE_SIGN_STYLE=Automatic DEVELOPMENT_TEAM=$TEAM"
 else
   SIGN='CODE_SIGN_IDENTITY=- CODE_SIGN_STYLE=Manual DEVELOPMENT_TEAM= PROVISIONING_PROFILE_SPECIFIER='
