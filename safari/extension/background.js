@@ -2,7 +2,7 @@
 // Safari's tabs, and keeps per-tab console and network buffers.
 
 var BRIDGE = 'http://127.0.0.1:47831';
-var VERSION = '0.8.1';
+var VERSION = '0.9.0';
 var RING = 500;
 
 var consoleLogs = new Map();
