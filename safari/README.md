@@ -31,8 +31,11 @@ signing, no extension install.
    Alternative for development: Settings > Developer > "Add Temporary Extension…" and
    pick the `extension/` folder. That loads it without the app until Safari quits.
 
-After rebuilding, Safari keeps running the old extension code until it reloads it:
-quit and reopen Safari (app build), or re-add the temporary extension. `/safari`
+Safari reloads a signed app extension by itself a few seconds after a rebuild, and
+runs one copy of the extension per Safari profile. Each copy numbers tabs on its own,
+so tab ids from `tabs_context` are only valid while the same copy answers; the bridge
+pins one copy (the one that can reach the current page) and switches only when it
+dies. After a reload, call `tabs_context` again before reusing a tab id. `/safari`
 shows the extension version the bridge sees.
 
 `/safari` shows bridge and extension status. Real keyboard shortcuts through

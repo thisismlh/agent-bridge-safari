@@ -2,7 +2,7 @@
 // Safari's tabs, and keeps per-tab console and network buffers.
 
 var BRIDGE = 'http://127.0.0.1:47831';
-var VERSION = '0.8.0';
+var VERSION = '0.8.1';
 var RING = 500;
 
 var consoleLogs = new Map();
@@ -32,7 +32,7 @@ browser.webRequest.onBeforeRequest.addListener(function (d) {
 browser.webRequest.onCompleted.addListener(function (d) {
   var r = requests.get(d.requestId) || { id: d.requestId, tabId: d.tabId, method: d.method, url: d.url, type: d.type, started: d.timeStamp };
   requests.delete(d.requestId);
-  r.status = d.statusCode; r.fromCache = !!d.fromCache; r.ms = Math.round(d.timeStamp - r.started);
+  if (d.statusCode) r.status = d.statusCode; r.fromCache = !!d.fromCache; r.ms = Math.round(d.timeStamp - r.started);
   push(networkLogs, d.tabId, r);
 }, { urls: ['<all_urls>'] });
 browser.webRequest.onErrorOccurred.addListener(function (d) {

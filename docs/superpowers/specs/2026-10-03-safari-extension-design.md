@@ -65,6 +65,18 @@ sends its expression the same way so it runs in the page world (page globals vis
 output captured); when a page's CSP refuses the hook, the expression runs in the
 isolated world instead and the tool says so only through missing page globals.
 
+## Extension instances
+
+Safari runs one instance of the extension per profile, and replaces all of them a few
+seconds after the signed app bundle changes. Each instance polls the bridge from its
+own `safari-web-extension://<uuid>` origin, numbers tabs independently, and sees only
+its profile's windows. Each poll reports `tabs` (count it sees) and `reach` (whether
+the active tab's content script answers a ping). The bridge treats an instance as
+usable only while it has a poll open or was seen within 3 s, ranks usable instances
+by reach, then tabs, then recency, and keeps the chosen one until it dies or a better
+one appears. The content script guards its install per runtime instance, so a new
+instance can re-inject into pages the old one scripted.
+
 ## Tab ids
 
 Extension transport uses Safari's numeric tab ids. AppleScript keeps `window:index`.
