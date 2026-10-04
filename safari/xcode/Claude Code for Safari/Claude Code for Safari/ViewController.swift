@@ -20,6 +20,14 @@ class ViewController: NSViewController, WKNavigationDelegate, WKScriptMessageHan
         webView.loadFileURL(Bundle.main.url(forResource: "Main", withExtension: "html")!, allowingReadAccessTo: Bundle.main.resourceURL!)
     }
 
+    override func viewDidAppear() {
+        super.viewDidAppear()
+        if let w = view.window, w.frame.height < 600 {
+            w.setContentSize(NSSize(width: 480, height: 640))
+            w.center()
+        }
+    }
+
     override func viewWillDisappear() { timer?.invalidate(); timer = nil; super.viewWillDisappear() }
 
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
@@ -35,7 +43,7 @@ class ViewController: NSViewController, WKNavigationDelegate, WKScriptMessageHan
             if #available(macOS 13.0, *) { login = SMAppService.mainApp.status == .enabled }
             let status: [String: Any] = [
                 "bridgePort": Int(b.port), "bridgeError": b.lastError ?? "",
-                "extensionEnabled": state?.isEnabled ?? false, "extensionConnected": b.isConnected, "extensionVersion": b.primaryVersion ?? "",
+                "extensionEnabled": state?.isEnabled ?? false, "extensionKnown": state != nil, "extensionConnected": b.isConnected, "extensionVersion": b.primaryVersion ?? "",
                 "instances": instances, "lastClaudeCall": b.lastClaudeCall.map { AppDelegate.ago($0) } ?? "",
                 "launchAtLogin": login, "appVersion": Bridge.version,
             ]
