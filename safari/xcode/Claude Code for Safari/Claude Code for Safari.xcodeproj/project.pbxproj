@@ -20,6 +20,7 @@
 		286D01873071876E00B0D2D0 /* background.js in Resources */ = {isa = PBXBuildFile; fileRef = 286D01823071876E00B0D2D0 /* background.js */; };
 		286D01883071876E00B0D2D0 /* page-runtime.js in Resources */ = {isa = PBXBuildFile; fileRef = 286D01833071876E00B0D2D0 /* page-runtime.js */; };
 		286D01893071876E00B0D2D0 /* console-hook.js in Resources */ = {isa = PBXBuildFile; fileRef = 286D01843071876E00B0D2D0 /* console-hook.js */; };
+		0319925F1585416190A95F34 /* hook-src.js in Resources */ = {isa = PBXBuildFile; fileRef = BB4A8F7C58054141B7AEC251 /* hook-src.js */; };
 		286D018A3071876E00B0D2D0 /* manifest.json in Resources */ = {isa = PBXBuildFile; fileRef = 286D01853071876E00B0D2D0 /* manifest.json */; };
 		286D018B3071876E00B0D2D0 /* content.js in Resources */ = {isa = PBXBuildFile; fileRef = 286D01863071876E00B0D2D0 /* content.js */; };
 /* End PBXBuildFile section */
@@ -63,6 +64,7 @@
 		286D01823071876E00B0D2D0 /* background.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = background.js; path = ../../../extension/background.js; sourceTree = "<group>"; };
 		286D01833071876E00B0D2D0 /* page-runtime.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = "page-runtime.js"; path = "../../../extension/page-runtime.js"; sourceTree = "<group>"; };
 		286D01843071876E00B0D2D0 /* console-hook.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = "console-hook.js"; path = "../../../extension/console-hook.js"; sourceTree = "<group>"; };
+		BB4A8F7C58054141B7AEC251 /* hook-src.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = "hook-src.js"; path = "../../../extension/hook-src.js"; sourceTree = "<group>"; };
 		286D01853071876E00B0D2D0 /* manifest.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; name = manifest.json; path = ../../../extension/manifest.json; sourceTree = "<group>"; };
 		286D01863071876E00B0D2D0 /* content.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = content.js; path = ../../../extension/content.js; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -139,6 +141,7 @@
 				286D01823071876E00B0D2D0 /* background.js */,
 				286D01833071876E00B0D2D0 /* page-runtime.js */,
 				286D01843071876E00B0D2D0 /* console-hook.js */,
+				BB4A8F7C58054141B7AEC251 /* hook-src.js */,
 				286D01853071876E00B0D2D0 /* manifest.json */,
 				286D01863071876E00B0D2D0 /* content.js */,
 			);
@@ -238,6 +241,7 @@
 			files = (
 				286D018A3071876E00B0D2D0 /* manifest.json in Resources */,
 				286D01893071876E00B0D2D0 /* console-hook.js in Resources */,
+				0319925F1585416190A95F34 /* hook-src.js in Resources */,
 				286D01883071876E00B0D2D0 /* page-runtime.js in Resources */,
 				286D01873071876E00B0D2D0 /* background.js in Resources */,
 				286D018B3071876E00B0D2D0 /* content.js in Resources */,
