@@ -22,6 +22,9 @@ echo "App: $(cd ../DerivedData/Build/Products/Debug && pwd)/Agent Bridge for Saf
 rm -rf "$ROOT/app" 2>/dev/null; mkdir -p "$ROOT/app"
 ditto "../DerivedData/Build/Products/Debug/Agent Bridge for Safari.app" "$ROOT/app/Agent Bridge for Safari.app"
 echo "Copied to app/Agent Bridge for Safari.app"
+# Keep exactly one registered copy of the extension, or Safari lists duplicates.
+pluginkit -r "../DerivedData/Build/Products/Debug/Agent Bridge for Safari.app/Contents/PlugIns/Agent Bridge for Safari Extension.appex" 2>/dev/null || true
+pluginkit -a "$ROOT/app/Agent Bridge for Safari.app/Contents/PlugIns/Agent Bridge for Safari Extension.appex" 2>/dev/null || true
 
 # ---- release mode: `./scripts/build-extension.sh release`
 # Archives a Release build, signs with Developer ID when the certificate exists, and
