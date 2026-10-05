@@ -435,8 +435,21 @@ export const register: Register = on => {
       // `/safari open example.com and read it`: hand the request to the model with the tools in mind.
       const s = await ensureBridge(io)
       if (!s.running) return { text: `${await statusText(io)}` }
-      // Not awaited: the prompt starts only after this command returns.
-      void $.prompt.submit({ text: `${arg}\n\n(Use the Safari browser tools, mcp__safari__*, for this.)`, asUser: true }).catch(() => {})
+      // Not awaited: the prompt starts only after this command returns. If the engine drops
+      // it, put the request in the composer instead so one Enter runs it.
+      const text = `${arg}\n\n(Use the Safari browser tools, mcp__safari__*, for this.)`
+      void $.prompt.submit({ text, asUser: true })
+        .then(r => {
+          if (r.drop !== undefined) {
+            $.ui.toast(`Safari request not queued (${r.drop}); press Enter to send it.`)
+            return $.prompt.suggest({ text })
+          }
+          return undefined
+        })
+        .catch(err => {
+          $.ui.toast(`Safari request could not be queued: ${err instanceof Error ? err.message : String(err)}`)
+          return $.prompt.suggest({ text }).catch(() => undefined)
+        })
       return { text: `Working on it with the Safari tools (${s.connected ? 'extension connected' : 'AppleScript fallback'}).` }
     }
     return { text: `${await statusText(io)}\n\nCommands: /safari status, /safari start, /safari install, or /safari <what to do in Safari>` }
