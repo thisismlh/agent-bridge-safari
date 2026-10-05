@@ -431,7 +431,14 @@ export const register: Register = on => {
       const s = await ensureBridge(io)
       return { text: `${s.running ? 'Bridge running.' : 'Bridge could not be started; is node on your PATH?'}\n\n${await statusText(io)}` }
     }
-    return { text: `${await statusText(io)}\n\nCommands: /safari status, /safari start, /safari install` }
+    if (arg && arg !== 'status') {
+      // `/safari open example.com and read it`: hand the request to the model with the tools in mind.
+      const s = await ensureBridge(io)
+      if (!s.running) return { text: `${await statusText(io)}` }
+      await $.prompt.submit({ text: `${arg}\n\n(Use the Safari browser tools, mcp__safari__*, for this.)`, asUser: true })
+      return { text: `Working on it with the Safari tools (${s.connected ? 'extension connected' : 'AppleScript fallback'}).` }
+    }
+    return { text: `${await statusText(io)}\n\nCommands: /safari status, /safari start, /safari install, or /safari <what to do in Safari>` }
   })
 
   for (const tool of TOOLS) {
