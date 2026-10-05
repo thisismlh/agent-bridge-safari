@@ -2,7 +2,7 @@
 // Safari's tabs, and keeps per-tab console and network buffers.
 
 var BRIDGE = 'http://127.0.0.1:47831';
-var VERSION = '0.9.0';
+var VERSION = '0.9.1';
 var RING = 500;
 
 var consoleLogs = new Map();
@@ -224,7 +224,25 @@ async function post(path, body) {
   }
 }
 
+// Safari unloads an idle background page after about 30 s, even with a fetch pending.
+// Regular extension-API activity keeps it alive, and an alarm restarts the loop if it
+// was unloaded anyway.
+var loopRunning = false;
+function keepAlive() {
+  try { browser.tabs.query({}).then(function () {}); } catch (e) {}
+  if (!loopRunning) loop();
+}
+try {
+  browser.alarms.create('keepalive', { periodInMinutes: 0.4 });
+  browser.alarms.onAlarm.addListener(function (a) { if (a.name === 'keepalive') keepAlive(); });
+} catch (e) {}
+setInterval(keepAlive, 15000);
+browser.runtime.onStartup && browser.runtime.onStartup.addListener(keepAlive);
+browser.runtime.onInstalled && browser.runtime.onInstalled.addListener(keepAlive);
+
 async function loop() {
+  if (loopRunning) return;
+  loopRunning = true;
   for (;;) {
     try {
       var count = 0; try { count = (await browser.tabs.query({})).length; } catch (e) {}

@@ -14,7 +14,7 @@ const args = process.argv.slice(2)
 const opt = (name, fallback) => { const i = args.indexOf(name); return i >= 0 ? args[i + 1] : fallback }
 const SOCK = opt('--sock', path.join(os.homedir(), '.claude', 'safari-bridge.sock'))
 const PORT = Number(opt('--port', 47831))
-const POLL_HOLD_MS = 25_000
+const POLL_HOLD_MS = 20_000
 const CONNECTED_WINDOW_MS = 40_000
 
 const queue = []            // commands waiting for the extension

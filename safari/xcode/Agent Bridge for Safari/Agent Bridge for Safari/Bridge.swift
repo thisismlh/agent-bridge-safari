@@ -187,7 +187,7 @@ final class Bridge {
 
     private let connectedWindow: TimeInterval = 40
     private let recent: TimeInterval = 3
-    private let pollHold: TimeInterval = 25
+    private let pollHold: TimeInterval = 20
     private let pickupWindow: TimeInterval = 8
 
     var discoveryURL: URL {
