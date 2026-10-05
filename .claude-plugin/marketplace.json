@@ -10,7 +10,7 @@
       "name": "safari",
       "source": "./safari",
       "description": "Drive Safari from Claude Code through a signed Safari extension, with an AppleScript fallback.",
-      "version": "0.9.1",
+      "version": "0.9.2",
       "author": { "name": "Michael Helms" },
       "category": "productivity",
       "keywords": ["safari", "browser", "automation", "testing", "macos"]

@@ -435,7 +435,8 @@ export const register: Register = on => {
       // `/safari open example.com and read it`: hand the request to the model with the tools in mind.
       const s = await ensureBridge(io)
       if (!s.running) return { text: `${await statusText(io)}` }
-      await $.prompt.submit({ text: `${arg}\n\n(Use the Safari browser tools, mcp__safari__*, for this.)`, asUser: true })
+      // Not awaited: the prompt starts only after this command returns.
+      void $.prompt.submit({ text: `${arg}\n\n(Use the Safari browser tools, mcp__safari__*, for this.)`, asUser: true }).catch(() => {})
       return { text: `Working on it with the Safari tools (${s.connected ? 'extension connected' : 'AppleScript fallback'}).` }
     }
     return { text: `${await statusText(io)}\n\nCommands: /safari status, /safari start, /safari install, or /safari <what to do in Safari>` }
