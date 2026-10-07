@@ -45,15 +45,15 @@ if [ "$1" = "release" ]; then
   eval xcodebuild -project '"Agent Bridge for Safari.xcodeproj"' -scheme '"Agent Bridge for Safari"' -configuration Release \
     -archivePath '"$OUT/Agent Bridge for Safari.xcarchive"' archive $STYLE -allowProvisioningUpdates | grep -E "error:|ARCHIVE" || true
   ditto "$OUT/Agent Bridge for Safari.xcarchive/Products/Applications/Agent Bridge for Safari.app" "$OUT/Agent Bridge for Safari.app"
-  ditto -c -k --keepParent "$OUT/Agent Bridge for Safari.app" "$OUT/Claude-Code-for-Safari.zip"
+  ditto -c -k --keepParent "$OUT/Agent Bridge for Safari.app" "$OUT/Agent-Bridge-for-Safari.zip"
   cat <<STEPS
 Release app: $OUT/Agent Bridge for Safari.app
-Zip for notarization: $OUT/Claude-Code-for-Safari.zip
+Zip for notarization: $OUT/Agent-Bridge-for-Safari.zip
 
 Notarize (one-time: xcrun notarytool store-credentials "AC_PASSWORD" --apple-id <id> --team-id $TEAM --password <app-specific password>):
-  xcrun notarytool submit "$OUT/Claude-Code-for-Safari.zip" --keychain-profile "AC_PASSWORD" --wait
+  xcrun notarytool submit "$OUT/Agent-Bridge-for-Safari.zip" --keychain-profile "AC_PASSWORD" --wait
   xcrun stapler staple "$OUT/Agent Bridge for Safari.app"
-  ditto -c -k --keepParent "$OUT/Agent Bridge for Safari.app" "$OUT/Claude-Code-for-Safari.zip"
+  ditto -c -k --keepParent "$OUT/Agent Bridge for Safari.app" "$OUT/Agent-Bridge-for-Safari.zip"
 App Store instead: open the .xcarchive in Xcode > Organizer > Distribute App.
 STEPS
 fi
