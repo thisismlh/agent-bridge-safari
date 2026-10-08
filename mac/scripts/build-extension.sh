@@ -45,6 +45,12 @@ if [ "$1" = "release" ]; then
   eval xcodebuild -project '"Agent Bridge for Safari.xcodeproj"' -scheme '"Agent Bridge for Safari"' -configuration Release \
     -archivePath '"$OUT/Agent Bridge for Safari.xcarchive"' archive $STYLE -allowProvisioningUpdates | grep -E "error:|ARCHIVE" || true
   ditto "$OUT/Agent Bridge for Safari.xcarchive/Products/Applications/Agent Bridge for Safari.app" "$OUT/Agent Bridge for Safari.app"
+  # The archive step registers its intermediate copy of the extension with macOS; drop it so
+  # Safari keeps seeing exactly one copy (the one in app/).
+  for stale in "$HOME"/Library/Developer/Xcode/DerivedData/Agent_Bridge_for_Safari-*/Build/Intermediates.noindex/ArchiveIntermediates; do
+    [ -d "$stale" ] && rm -rf "$stale"
+  done
+  pluginkit -a "$ROOT/app/Agent Bridge for Safari.app/Contents/PlugIns/Agent Bridge for Safari Extension.appex" 2>/dev/null || true
   ditto -c -k --keepParent "$OUT/Agent Bridge for Safari.app" "$OUT/Agent-Bridge-for-Safari.zip"
   cat <<STEPS
 Release app: $OUT/Agent Bridge for Safari.app
