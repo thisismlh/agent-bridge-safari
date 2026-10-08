@@ -1,1 +1,5 @@
-safari/dist/
+mac/app/
+mac/dist/
+mac/xcode/DerivedData/
+mac/node_modules/
+mac/bun.lock

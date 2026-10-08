@@ -2,7 +2,7 @@
 # Builds the Safari extension container app. Uses your Apple ID team when Xcode has
 # one (TEAM=XXXXXXXXXX ./scripts/build-extension.sh), ad-hoc signing otherwise.
 set -e
-ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"   # the mac/ folder
 cd "$ROOT/xcode/Agent Bridge for Safari"
 # Default to the Apple Development team Xcode knows when no TEAM is given, so a signed
 # build never silently turns into an ad-hoc one (Safari drops unsigned extensions).

@@ -2,7 +2,7 @@
 # Pads the source screenshots in docs/site/screenshots/src onto 2880x1800 canvases for
 # App Store Connect (Mac screenshots must be one of the accepted sizes).
 set -e
-ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
+ROOT="$(cd "$(dirname "$0")/../.." && pwd)"   # repo root
 SRC="$ROOT/docs/site/screenshots/src"; OUT="$ROOT/docs/site/screenshots/2880x1800"
 mkdir -p "$OUT"
 for f in "$SRC"/*.png "$SRC"/*.jpg; do

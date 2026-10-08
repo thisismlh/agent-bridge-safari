@@ -1,7 +1,7 @@
 {
-  "name": "safari",
-  "version": "0.9.3",
-  "description": "Drive Safari from Claude Code: tabs, navigate, read page, find, click, type, forms, scroll, screenshot, JavaScript.",
+  "name": "agent-bridge-safari",
+  "version": "1.0.0",
+  "description": "Browser automation for Safari: tabs, pages, forms, console, network, screenshots, through the Agent Bridge for Safari app.",
   "author": {
     "name": "Michael Helms",
     "email": "helms.michael@gmail.com"

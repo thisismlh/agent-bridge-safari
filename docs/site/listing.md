@@ -27,7 +27,7 @@ the Safari extension and Claude Code can reach. No accounts, no servers, no anal
 Requires Claude Code and the free `safari` plugin:
 
     /plugin marketplace add thisismlh/agent-bridge-safari
-    /plugin install safari@agent-bridge-safari
+    /plugin install agent-bridge-safari@agent-bridge-safari
 
 ## Keywords
 

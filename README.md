@@ -27,7 +27,7 @@ Context Protocol (MCP): OpenAI Codex CLI, Cursor, Zed, Windsurf and others.
 
    ```
    /plugin marketplace add thisismlh/agent-bridge-safari
-   /plugin install safari@agent-bridge-safari
+   /plugin install agent-bridge-safari@agent-bridge-safari
    ```
 
 3. Run `/safari`. It should report the bridge running in the app and the extension
@@ -81,7 +81,7 @@ screenshots.
 ## Building from source
 
 See [safari/README.md](safari/README.md). The Xcode project is in `safari/xcode`,
-`./scripts/build-extension.sh` builds and signs the app, and
-`./scripts/build-extension.sh release` archives it and prints the notarization steps.
+`./mac/scripts/build-extension.sh` builds and signs the app, and
+`./mac/scripts/build-extension.sh release` archives it and prints the notarization steps.
 
 MIT licensed.

@@ -3,7 +3,7 @@
 # It installs the release app into /Applications, launches it, waits for the bridge, and prints
 # the Claude Code steps to finish by hand.
 set -e
-ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"   # the mac/ folder
 APP="$ROOT/dist/Agent Bridge for Safari.app"
 [ -d "$APP" ] || { echo "No release build at $APP. Run: TEAM=<team> ./scripts/build-extension.sh release"; exit 1; }
 
@@ -30,7 +30,7 @@ cat <<STEPS
 
 5. In a NEW Claude Code session (not the one with the dev-mods folder), run:
      /plugin marketplace add thisismlh/agent-bridge-safari
-     /plugin install safari@agent-bridge-safari
+     /plugin install agent-bridge-safari@agent-bridge-safari
      /safari
    Expected: "Bridge: running in the Agent Bridge for Safari app", "Extension: connected".
 

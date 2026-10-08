@@ -17,7 +17,7 @@ const on = (event: string, matcher: any, hook?: any) => {
 }
 const $ = {
   plugin: { name: 'safari', root: process.cwd() },
-  tool: { register: async (s: any) => { specs.push(s); return { tool: `mcp__safari__${s.name}` } } },
+  tool: { register: async (s: any) => { specs.push(s); return { tool: `mcp__agent-bridge-safari__${s.name}` } } },
   command: { register: async () => ({ command: 'safari' }) },
   ui: { status: () => {} },
   fs: {
@@ -60,7 +60,7 @@ await new Promise(r => setTimeout(r, 50))
 const [tool, json] = process.argv.slice(2)
 if (!tool) { console.log(specs.map(s => s.name).join(', ')); process.exit(0) }
 if (tool.startsWith('/')) { const c = commands.get(tool.slice(1))!; console.log((await c($, { args: json ?? '' })).text); process.exit(0) }
-const hook = hooks.get(`mcp__safari__${tool}`)
+const hook = hooks.get(`mcp__agent-bridge-safari__${tool}`)
 if (!hook) { console.error('no such tool'); process.exit(1) }
 const res = await hook($, { tool: `mcp__safari__${tool}`, tool_use_id: 'x', ...(json ? JSON.parse(json) : {}) })
 if (res.deny !== undefined) { console.log(res.deny); console.log('(isError)'); process.exit(2) }

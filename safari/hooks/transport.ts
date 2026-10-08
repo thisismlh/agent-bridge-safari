@@ -129,7 +129,7 @@ export async function ensureBridge(io: Io): Promise<BridgeStatus> {
     }
     try {
       const node = await findNode(io)
-      const script = `${io.pluginRoot}/bridge/bridge.mjs`
+      const script = `${io.pluginRoot}/../mac/bridge/bridge.mjs`
       const stream = io.spawn([node, script, '--sock', await bridgeSocket(io)])
       void (async () => {
         try {

@@ -8,7 +8,7 @@
 
    ```
    /plugin marketplace add thisismlh/agent-bridge-safari
-   /plugin install safari@agent-bridge-safari
+   /plugin install agent-bridge-safari@agent-bridge-safari
    ```
 
 3. Run `/safari`. It should say the bridge is running in the app and the extension is
@@ -35,7 +35,7 @@ replaced by an unsigned build. Reinstall the signed app and reopen Safari.
 ## Uninstall
 
 Turn the extension off in Safari > Settings > Extensions, quit the app from its menu bar
-item, and move the app to the Trash. In Claude Code, run `/plugin uninstall safari`.
+item, and move the app to the Trash. In Claude Code, run `/plugin uninstall agent-bridge-safari`.
 
 ## Contact
 

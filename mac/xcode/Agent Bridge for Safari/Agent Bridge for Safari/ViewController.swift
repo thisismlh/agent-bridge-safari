@@ -59,7 +59,7 @@ class ViewController: NSViewController, WKNavigationDelegate, WKScriptMessageHan
             SFSafariApplication.showPreferencesForExtension(withIdentifier: extensionBundleIdentifier) { _ in }
         case "copy-command":
             NSPasteboard.general.clearContents()
-            NSPasteboard.general.setString("/plugin marketplace add thisismlh/agent-bridge-safari && /plugin install safari@agent-bridge-safari", forType: .string)
+            NSPasteboard.general.setString("/plugin marketplace add thisismlh/agent-bridge-safari && /plugin install agent-bridge-safari@agent-bridge-safari", forType: .string)
         case "toggle-login":
             if #available(macOS 13.0, *) {
                 let svc = SMAppService.mainApp

@@ -437,7 +437,7 @@ export const register: Register = on => {
       if (!s.running) return { text: `${await statusText(io)}` }
       // Not awaited: the prompt starts only after this command returns. If the engine drops
       // it, put the request in the composer instead so one Enter runs it.
-      const text = `${arg}\n\n(Use the Safari browser tools, mcp__safari__*, for this.)`
+      const text = `${arg}\n\n(Use the Safari browser tools, mcp__agent-bridge-safari__*, for this.)`
       void $.prompt.submit({ text, asUser: true })
         .then(r => {
           if (r.drop !== undefined) {
@@ -456,7 +456,7 @@ export const register: Register = on => {
   })
 
   for (const tool of TOOLS) {
-    on('tool.call', { tool: `mcp__safari__${tool.name}` }, async ($, e) => {
+    on('tool.call', { tool: `mcp__agent-bridge-safari__${tool.name}` }, async ($, e) => {
       const { tool: _t, tool_use_id: _id, ...input } = e as Record<string, unknown>
       try {
         return await tool.run(makeIo($), input)
