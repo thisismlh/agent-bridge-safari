@@ -20,7 +20,8 @@ Context Protocol (MCP): OpenAI Codex CLI, Cursor, Zed, Windsurf and others.
 
 ## Install
 
-1. Open **Agent Bridge for Safari.app** once. Click "Open Safari Extension Settings…",
+1. Download the app from the [latest release](https://github.com/thisismlh/agent-bridge-safari/releases/latest),
+   unzip it, move it to Applications, and open **Agent Bridge for Safari.app** once. Click "Open Safari Extension Settings…",
    turn on the extension, and allow it on every website.
 2. In Claude Code:
 
